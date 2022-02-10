@@ -99,7 +99,16 @@ public void NIGH_Invoke(int client, int index)
 	}
 
 	FindConVar("mp_friendlyfire").AddChangeHook(HideCvarNotify);
+	//HotoCocoaco: There's no need to make FF in a loop.
+	//Since it should confuse players, we need FriendlyFire aswell
+	if(!FindConVar("mp_friendlyfire").BoolValue)
+	{
+		FindConVar("mp_friendlyfire").BoolValue = true;
+	}
+	SniperFF=true;
 
+	float ff_duration = FF2_GetAbilityArgumentFloat(boss, this_plugin_name, NIGHTMARE, 2, 10.0);
+	EndFFAt = GetGameTime() + ff_duration;
 	// And now proceed to rage
 	for (int i = 1; i <= MaxClients; i++)
 	{
@@ -152,26 +161,18 @@ public void NIGH_Invoke(int client, int index)
 				SetEntityHealth(i, health);
 			}
 
-			//Now set a timer for the Rage, because the rage should not last forever
-			EndNightmareAt=GetGameTime()+FF2_GetAbilityArgumentFloat(boss, this_plugin_name, NIGHTMARE, 1, 10.0);
-
-			//Since it should confuse players, we need FriendlyFire aswell
-			if(!FindConVar("mp_friendlyfire").BoolValue)
-			{
-				FindConVar("mp_friendlyfire").BoolValue = true;
-			}
-			SniperFF=true;
-
 			if(NightmareVoice)
 			{
 				NoVoice[i]=true;
 			}
-
-			EndFFAt=GetGameTime()+FF2_GetAbilityArgumentFloat(boss, this_plugin_name, NIGHTMARE, 2, 10.0);
-
-			SDKHook(i, SDKHook_PreThink, Nightmare_Prethink);
 		}
 	}
+	//Now set a timer for the Rage, because the rage should not last forever.
+	//HotoCocoaco: You don't need to do that in a loop if it's not about the range!!
+	float end_duration = FF2_GetAbilityArgumentFloat(boss, this_plugin_name, NIGHTMARE, 1, 10.0);
+	EndNightmareAt = GetGameTime() + end_duration;
+	//HotoCocoaco: Only hook the boss client index if you are going to make another loop later.
+	SDKHook(client, SDKHook_PreThink, Nightmare_Prethink);
 }
 
 public void Nightmare_Prethink(int client)
