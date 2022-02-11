@@ -39,20 +39,6 @@ new g_BossThreshold5 = -1;
 
 new Handle:g_HealthModelTimer;
 
-public OnLibraryAdded(const String:name[])
-{
-	if (StrEqual(name, "VSH2")) {
-		VSH2_Hook(OnBossModelTimer, FF2_OnBossModelTimer);
-	}
-}
-
-public OnLibraryRemoved(const String:name[])
-{
-	if (StrEqual(name, "VSH2")) {
-		VSH2_Unhook(OnBossModelTimer, FF2_OnBossModelTimer);
-	}
-}
-
 Action:FF2_OnBossModelTimer(const VSH2Player:player)
 {
 	if (g_ModelChanged)
@@ -66,6 +52,13 @@ public OnPluginStart2()
 	HookEvent("arena_round_start", Event_RoundStart, EventHookMode_PostNoCopy);
 	HookEvent("arena_win_panel", Event_RoundEnd, EventHookMode_PostNoCopy);
 	CreateTimer(1.0, BossHealthCheck, _, TIMER_REPEAT|TIMER_FLAG_NO_MAPCHANGE);
+
+	VSH2_Hook(OnBossModelTimer, FF2_OnBossModelTimer);
+}
+
+public OnPluginEnd()
+{
+	VSH2_Unhook(OnBossModelTimer, FF2_OnBossModelTimer);
 }
 
 
