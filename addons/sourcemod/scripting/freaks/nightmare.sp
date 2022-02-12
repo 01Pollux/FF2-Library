@@ -100,12 +100,6 @@ public void NIGH_Invoke(int client, int index)
 
 	FindConVar("mp_friendlyfire").AddChangeHook(HideCvarNotify);
 	//HotoCocoaco: There's no need to make FF in a loop.
-	//Since it should confuse players, we need FriendlyFire aswell
-	if(!FindConVar("mp_friendlyfire").BoolValue)
-	{
-		FindConVar("mp_friendlyfire").BoolValue = true;
-	}
-	SniperFF=true;
 
 	float ff_duration = FF2_GetAbilityArgumentFloat(boss, this_plugin_name, NIGHTMARE, 2, 10.0);
 	EndFFAt = GetGameTime() + ff_duration;
@@ -172,6 +166,14 @@ public void NIGH_Invoke(int client, int index)
 	float end_duration = FF2_GetAbilityArgumentFloat(boss, this_plugin_name, NIGHTMARE, 1, 10.0);
 	EndNightmareAt = GetGameTime() + end_duration;
 	//HotoCocoaco: Only hook the boss client index if you are going to make another loop later.
+
+	//Since it should confuse players, we need FriendlyFire aswell
+	if(!FindConVar("mp_friendlyfire").BoolValue)
+	{
+		FindConVar("mp_friendlyfire").BoolValue = true;
+	}
+	SniperFF=true;
+
 	SDKHook(client, SDKHook_PreThink, Nightmare_Prethink);
 }
 

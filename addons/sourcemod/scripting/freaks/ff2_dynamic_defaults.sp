@@ -1471,7 +1471,7 @@ public void DSSG_PerformUnstunActions(int sentry, int i)
 
 public void DSSG_RemoveSentry(int sentryIdx)
 {
-	if (DSSG_ParticleEntRef[sentryIdx] != INVALID_ENTREF)
+	if (DSSG_ParticleEntRef[sentryIdx] != INVALID_ENTREF && IsValidEntity(DSSG_ParticleEntRef[sentryIdx]))
 		RemoveEntity(DSSG_ParticleEntRef[sentryIdx]);
 	DSSG_EntRef[sentryIdx] = INVALID_ENTREF;
 

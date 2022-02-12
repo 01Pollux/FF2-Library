@@ -39,7 +39,7 @@ public void OnPluginStart2()
 {
 	HookEvent("teamplay_round_start", Event_RoundStart);
 	HookEvent("arena_win_panel", Event_WinPanel);
-	
+
 	if(FF2_GetRoundState()==1)
 	{
 		PrepareAbilities(); // late-load ? reload?
@@ -116,14 +116,15 @@ public void MVS_Invoke(int client, int index)
 	if(!NewSpeed[client]) {
 		NewSpeed[client] = FF2_GetAbilityArgumentFloat(boss, this_plugin_name, MOVESPEED, 1);
 	}
-	
+
 	float nDuration = FF2_GetAbilityArgumentFloat(boss, this_plugin_name, MOVESPEED, 2);
-	
+
 	if(NewSpeedDuration[client] != INACTIVE) {
 		NewSpeedDuration[client] += nDuration;
 	}
-	NewSpeedDuration[client] = nDuration + (NewSpeedDuration[client] == INACTIVE ? GetGameTime():NewSpeedDuration[client]);
-	
+	//NewSpeedDuration[client] = nDuration + (NewSpeedDuration[client] == INACTIVE ? GetGameTime():NewSpeedDuration[client]);
+	NewSpeedDuration[client] = GetGameTime() + nDuration;
+
 	if(NewSpeed_TriggerAMS[client])
 	{
 		static char snd[PLATFORM_MAX_PATH];
@@ -131,9 +132,9 @@ public void MVS_Invoke(int client, int index)
 		{
 			EmitSoundToAll(snd, client);
 			EmitSoundToAll(snd, client);
-		}		
+		}
 	}
-	
+
 	if(!DSM_SpeedOverride[client]) {
 		DSM_SpeedOverride[client] = FF2_HasAbility(boss, "ff2_dynamic_defaults", "dynamic_speed_management");
 		if(DSM_SpeedOverride[client])
@@ -142,7 +143,7 @@ public void MVS_Invoke(int client, int index)
 		}
 		SDKHook(client, SDKHook_PreThink, MoveSpeed_Prethink);
 	}
-	
+
 	float dist2=FF2_GetAbilityArgumentFloat(boss, this_plugin_name, MOVESPEED, 3, -1.0);
 	if(dist2)
 	{
@@ -150,17 +151,17 @@ public void MVS_Invoke(int client, int index)
 		{
 			dist2=FF2_GetRageDist(boss, this_plugin_name, MOVESPEED);
 		}
-		
+
 		float speed = FF2_GetAbilityArgumentFloat(boss, this_plugin_name, MOVESPEED, 4);
 		nDuration = FF2_GetAbilityArgumentFloat(boss, this_plugin_name, MOVESPEED, 5);
-		
+
 		static float pos[3], pos2[3], dist;
 		GetEntPropVector(client, Prop_Send, "m_vecOrigin", pos);
 		for(int target=1;target<=MaxClients;target++)
 		{
 			if(!IsValidClient(target))
 				continue;
-		
+
 			GetEntPropVector(target, Prop_Send, "m_vecOrigin", pos2);
 			dist=GetVectorDistance( pos, pos2 );
 			if (dist<dist2 && IsPlayerAlive(target) && GetClientTeam(target)!=FF2_GetBossTeam())
@@ -184,7 +185,7 @@ public Action FF2_OnAbility2(int boss, const char[] plugin_name, const char[] ab
 {
 	if(!FF2_IsFF2Enabled() || FF2_GetRoundState()!=1)
 		return Plugin_Continue; // Because some FF2 forks still allow RAGE to be activated when the round is over....
-		
+
 	int client=GetClientOfUserId(FF2_GetBossUserId(boss));
 	if(!strcmp(ability_name, MOVESPEED))
 	{
@@ -212,7 +213,7 @@ public int SpeedTick(int client, float gameTime)
 			DSM_SpeedOverride[client]=false;
 			DSM_SetOverrideSpeed(client, -1.0);
 		}
-		
+
 		int boss=FF2_GetBossIndex(client);
 		if(boss>=0)
 		{
@@ -223,7 +224,7 @@ public int SpeedTick(int client, float gameTime)
 				EmitSoundToAll(snd, client);
 			}
 		}
-	
+
 		NewSpeed[client]=0.0;
 		NewSpeedDuration[client]=INACTIVE;
 		SDKUnhook(client, SDKHook_PreThink, MoveSpeed_Prethink);
