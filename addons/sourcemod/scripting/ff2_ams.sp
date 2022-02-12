@@ -8,7 +8,7 @@
 #define ToAMSUser(%0) view_as<AMSUser>(%0)
 #define MAXCLIENTS MAXPLAYERS + 1
 
-#define _AMS_TAG "ams_sys." ... 
+#define _AMS_TAG "ams_sys." ...
 #define TEXT(%0) #%0
 
 Handle hAMSHud;
@@ -27,7 +27,7 @@ float AMS_HudUpdate[MAXCLIENTS];
 
 #include "ff2_ams_helper.sp"
 
-public Plugin myinfo = 
+public Plugin myinfo =
 {
 	name		= "[FF2] Ability Management System",
 	author		= "01Pollux",
@@ -91,7 +91,7 @@ public void _OnRoundStart(const VSH2Player[] bosses, const int boss_count, const
 	AMSUser player;
 
 	bool exists;
-	for (int i = 0; i < boss_count; i++) 
+	for (int i = 0; i < boss_count; i++)
 	{
 		player = ToAMSUser(bosses[i]);
 		if (!FF2GameMode.Validate(view_as<VSH2Player>(player)))
@@ -142,7 +142,7 @@ public void _OnBossThink(const VSH2Player vsh2player)
 		return;
 
 	AMSUser player = ToAMSUser(vsh2player);
-	if (!player.bHasAMS || !IsPlayerAlive(player.index)) 
+	if (!player.bHasAMS || !IsPlayerAlive(player.index))
 		return;
 
 	Handle_AMSThink(player);
@@ -197,9 +197,9 @@ void Handle_AMSThink(const AMSUser player)
 	float curTime = GetGameTime();
 	int buttons = GetClientButtons(client);
 
-	if (flNextPress[client] <= curTime) 
+	if (flNextPress[client] <= curTime)
 	{
-		if (buttons & AMSData[client].iForwardKey) 
+		if (buttons & AMSData[client].iForwardKey)
 		{
 			SetEntProp(client, Prop_Data, "m_nButtons", buttons ^ AMSData[client].iForwardKey);
 			AMSData[client].MoveForward();
@@ -229,10 +229,13 @@ void Handle_AMSThink(const AMSUser player)
 			{
 				Handle_AMSOnAbility(player, map);
 
+				float rage = player.GetPropFloat("flRAGE");
+				if (rage > 100.0)
+					rage = 100.0;
 				player.SetPropFloat("flRAGE", player.GetPropFloat("flRAGE") - map.flCost);
 				AMS_HudUpdate[client] = curTime;
 			}
-			else if (map.bCanEnd) 
+			else if (map.bCanEnd)
 				Handle_AMSOnEnd(client, map);
 		}
 	}
@@ -250,16 +253,16 @@ void Handle_AMSThink(const AMSUser player)
 		_Color c;
 		c = available ? AMSData[client].active_color:AMSData[client].inactive_color;
 
-		SetHudTextParams(-1.0, 
-						AMSData[client].flHudPos, 
-						0.25, 
+		SetHudTextParams(-1.0,
+						AMSData[client].flHudPos,
+						0.25,
 						c.r, c.g, c.b, c.a);
 
-		ShowSyncHudText(client, 
-						hAMSHud, 
-						available ? AMSData[client].active_text : AMSData[client].inactive_text, 
-						other, 
-						map.flCost, 
+		ShowSyncHudText(client,
+						hAMSHud,
+						available ? AMSData[client].active_text : AMSData[client].inactive_text,
+						other,
+						map.flCost,
 						other2);
 	}
 }
@@ -279,7 +282,7 @@ static AMSResult FF2_GetAMSType(AMSUser player, AMSMap map, bool hud=false)
 
 
 int FF2_PushToAMS(	int client,
-					Handle hPlugin, const char[] pl_name, const char[] ab_name, 
+					Handle hPlugin, const char[] pl_name, const char[] ab_name,
 					Function can_invoke = INVALID_FUNCTION,
 					Function invoke = INVALID_FUNCTION,
 					Function overwrite = INVALID_FUNCTION,
@@ -289,7 +292,7 @@ int FF2_PushToAMS(	int client,
 	return AMSData[client].hAbilities.Register(FF2Player(client), hPlugin, pl_name, ab_name, can_invoke, invoke, overwrite, on_end);
 }
 
-public any Native_PushToAMSEx(Handle hPlugin, int Params) 
+public any Native_PushToAMSEx(Handle hPlugin, int Params)
 {
 	int client = GetNativeCell(1);
 	if (client <= 0 || client > MaxClients)
@@ -311,7 +314,7 @@ public any Native_PushToAMSEx(Handle hPlugin, int Params)
 public any Native_PushToAMS(Handle hPlugin, int Params)
 {
 	int client = GetNativeCell(1);
-	if (client <= 0 || client > MaxClients) 
+	if (client <= 0 || client > MaxClients)
 		return ThrowNativeError(SP_ERROR_NATIVE, "Invalid client index (%i)", client);
 
 	char plugin[64]; GetNativeString(2, plugin, sizeof(plugin));
@@ -339,7 +342,7 @@ public any Native_PushToAMS(Handle hPlugin, int Params)
 public any Native_GetAMSAbilities(Handle hPlugin, int Params)
 {
 	int client = GetNativeCell(1);
-	if (client <= 0 || client > MaxClients) 
+	if (client <= 0 || client > MaxClients)
 		return ThrowNativeError(SP_ERROR_NATIVE, "Invalid client index (%i)", client);
 
 	return AMSData[client].hAbilities;
