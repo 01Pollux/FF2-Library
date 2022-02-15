@@ -3,6 +3,8 @@
 #include <tf2_stocks>
 #include <ff2_ams2>
 #include <freak_fortress_2>
+#include <vsh2>
+#include <sdkhooks>
 
 #pragma semicolon 1
 
@@ -30,6 +32,8 @@ bool RPyro_AMSMode[MAXPLAYERS+1];
 bool RSpy_AMSMode[MAXPLAYERS+1];
 bool RGen_AMSMode[MAXPLAYERS+1];
 
+//float flChargeSalmon_Lastused;
+
 public Plugin myinfo = {
 	name = "Freak Fortress 2: Saxtoner Ability Pack",
 	author = "Otokiru, updated by SHADow93",
@@ -41,9 +45,9 @@ public void OnPluginStart2()
 	HookEvent("arena_round_start", Event_RoundStart);
 	HookEvent("player_death", OnPlayerDeath, EventHookMode_Pre);
 	HookEvent("arena_win_panel", Event_RoundEnd);
-	
+
 	jumpHUD = CreateHudSynchronizer();
-	
+
 	PrecacheSound(GENTLEMEN_START,true);
 	PrecacheSound(GENTLEMEN_EXIT,true);
 	PrecacheSound(PEDO_SND,true);
@@ -51,8 +55,8 @@ public void OnPluginStart2()
 	PrecacheSound(SCT_SND,true);
 	PrecacheSound(ZEPH_SND,true);
 	PrecacheSound(POL_SND,true);
-	
-	
+
+
 	if(FF2_GetRoundState()==1)
 	{
 		HookAbilities();
@@ -107,9 +111,10 @@ public void HookAbilities()
 					Format(fileName, sizeof(fileName), "ff2_otokiru.phrases"); // load default if none specified
 				}
 				LoadTranslations(fileName);
+				SDKHook(client, SDKHook_PreThink, ChargeSalmon_Prethink);
+				FF2Player(client).SetPropAny("bNoSuperJump", true);
+				FF2Player(client).SetPropAny("bHideHUD", true);
 			}
-			
-			
 		}
 	}
 }
@@ -124,23 +129,23 @@ public void FF2AMS_PreRoundStart(int client)
 	if(FF2_HasAbility(boss, this_plugin_name, "rage_nurse_bowrage"))
 	{
 		RNurse_AMSMode[client] = FF2AMS_PushToAMS(client, this_plugin_name, "rage_nurse_bowrage", "NUR");
-	}	
+	}
 	if(FF2_HasAbility(boss, this_plugin_name, "rage_giftwrap"))
 	{
 		RGift_AMSMode[client] = FF2AMS_PushToAMS(client, this_plugin_name, "rage_giftwrap", "GFT");
-	}	
+	}
 	if(FF2_HasAbility(boss, this_plugin_name, "rage_pedo"))
 	{
 		RPedo_AMSMode[client] = FF2AMS_PushToAMS(client, this_plugin_name, "rage_pedo", "PDO");
-	}		
+	}
 	if(FF2_HasAbility(boss, this_plugin_name, "rage_pyrogas"))
 	{
 		RPyro_AMSMode[client] = FF2AMS_PushToAMS(client, this_plugin_name, "rage_pyrogas", "PYR");
-	}	
+	}
 	if(FF2_HasAbility(boss, this_plugin_name, "rage_abstractspy"))
 	{
 		RSpy_AMSMode[client] = FF2AMS_PushToAMS(client, this_plugin_name, "rage_abstractspy", "SPY");
-	}			
+	}
 	if(FF2_HasAbility(boss, this_plugin_name, "rage_gentlemen"))
 	{
 		RGen_AMSMode[client] = FF2AMS_PushToAMS(client, this_plugin_name, "rage_gentlemen", "MEN");
@@ -166,7 +171,7 @@ void Rage_Scout(int client)
 		{
 			return;
 		}
-	}	
+	}
 	SCT_Invoke(client, -1); // Activate RAGE normally, if ability is configured to be used as a normal RAGE.
 }
 
@@ -179,10 +184,10 @@ public void SCT_Invoke(int client, int index)
 	int var3=FF2_GetAbilityArgument(boss,this_plugin_name,"rage_scout", 3);	//ammo
 	FF2_GetAbilityArgumentString(boss, this_plugin_name, "rage_scout", 4, attributes, sizeof(attributes)); //attributes
 	TF2_RemoveWeaponSlot(client, TFWeaponSlot_Melee);
-	
+
 	// Because Scouts are only supposed to get +1 caprate, not +2 caprate. Also set the built-in attributes for Sandman rage
 	Format(defattrib, sizeof(defattrib), TF2_GetPlayerClass(client)==TFClass_Scout ? "2 ; 3 ; 37 ; 0 ; 38 ; 1 ; 68 ; 1 ; 134 ; 17" : "2 ; 3 ; 37 ; 0 ; 38 ; 1 ; 68 ; 2 ; 134 ; 17");
-	
+
 	if(attributes[0]!='\0') // Now we equip up to 9 more user-specified attributes
 	{
 		Format(attributes, sizeof(attributes), var1==1 ? "350 ; 1 ; %s ; %s" : "%s ; %s", defattrib, attributes);
@@ -219,7 +224,7 @@ void Rage_Giftwrap(int client)
 		{
 			return;
 		}
-	}	
+	}
 	GFT_Invoke(client, -1); // Activate RAGE normally, if ability is configured to be used as a normal RAGE.
 }
 
@@ -232,10 +237,10 @@ public void GFT_Invoke(int client, int index)
 	int var3=FF2_GetAbilityArgument(boss,this_plugin_name,"rage_giftwrap", 3);	//ammo
 	FF2_GetAbilityArgumentString(boss, this_plugin_name,"rage_giftwrap", 4, attributes, sizeof(attributes)); //attributes
 	TF2_RemoveWeaponSlot(client, TFWeaponSlot_Melee);
-	
+
 	// Because Scouts are only supposed to get +1 caprate, not +2 caprate. Also set the built-in attributes for Wrap Assassin rage
 	Format(defattrib, sizeof(defattrib), TF2_GetPlayerClass(client)==TFClass_Scout ? "2 ; 3 ; 37 ; 0 ; 38 ; 1 ; 68 ; 1 ; 134 ; 17" : "2 ; 3 ; 37 ; 0 ; 38 ; 1 ; 68 ; 2 ; 134 ; 17");
-	
+
 	if(attributes[0]!='\0') // Now we equip up to 9 more user-specified attributes
 	{
 		Format(attributes, sizeof(attributes), var1==1 ? "350 ; 1 ; %s ; %s" : "%s ; %s", defattrib, attributes);
@@ -272,7 +277,7 @@ void Rage_Nurse(int client)
 		{
 			return;
 		}
-	}	
+	}
 	NUR_Invoke(client, -1); // Activate RAGE normally, if ability is configured to be used as a normal RAGE.
 }
 
@@ -284,10 +289,10 @@ public void NUR_Invoke(int client, int index) // Crusader's Crossbow RAGE
 	int var2=FF2_GetAbilityArgument(boss,this_plugin_name,"rage_nurse_bowrage", 2);	//sound
 	int var3=FF2_GetAbilityArgument(boss,this_plugin_name,"rage_nurse_bowrage", 3);	//ammo
 	TF2_RemoveWeaponSlot(client, TFWeaponSlot_Primary);
-	
+
 	// We set whether crossbow turns players into gold or not.
 	Format(attributes, sizeof(attributes), var1==1 ? "6 ; 0.5 ; 37 ; 0.0 ; 2 ; 3.0 ; 150 ; 1 ; 134 ; 19 ; 37 ; 0.0" : "6 ; 0.5 ; 37 ; 0.0 ; 2 ; 3.0 ; 134 ; 19 ; 37 ; 0.0");
-	
+
 	// Now we spawn the weapon
 	SetEntPropEnt(client, Prop_Send, "m_hActiveWeapon", SpawnWeapon(client, "tf_weapon_crossbow", 305, 100, 5, attributes, FF2_GetAbilityArgument(boss,this_plugin_name,"rage_scout", 5)));
 	SetAmmo(client, TFWeaponSlot_Primary,var3);
@@ -322,8 +327,8 @@ void Rage_Pedo(int client)
 		{
 			return;
 		}
-	}	
-		
+	}
+
 	PDO_Invoke(client, -1); // Activate RAGE normally, if ability is configured to be used as a normal RAGE.
 }
 
@@ -378,8 +383,8 @@ void Rage_Pyrogas(int client)
 		{
 			return;
 		}
-	}	
-		
+	}
+
 	PYR_Invoke(client, -1); // Activate RAGE normally, if ability is configured to be used as a normal RAGE.
 }
 
@@ -422,8 +427,8 @@ void Rage_Gentlemen(int client)
 		{
 			return;
 		}
-	}	
-		
+	}
+
 	MEN_Invoke(client, -1); // Activate RAGE normally, if ability is configured to be used as a normal RAGE.
 }
 
@@ -474,7 +479,7 @@ public void MEN_Invoke(int client, int index)
 			return;
 	}
 	while (MercPlayers && (!IsValidEdict(target) || (target==client) || !IsPlayerAlive(target)));
-	
+
 	if (IsValidEdict(target))
 	{
 		GetEntPropVector(target, Prop_Data, "m_vecOrigin", pos_2);
@@ -512,8 +517,8 @@ void Rage_AbstractSpy(int client)
 		{
 			return;
 		}
-	}	
-		
+	}
+
 	SPY_Invoke(client, -1); // Activate RAGE normally, if ability is configured to be used as a normal RAGE.
 }
 
@@ -533,20 +538,20 @@ public void SPY_Invoke(int client, int index)
 
 public void FF2_OnAbility2(int boss,const char[] plugin_name,const char[] ability_name,int action)
 {
-	int slot=FF2_GetAbilityArgument(boss, this_plugin_name, ability_name, 0);
+	//int slot=FF2_GetAbilityArgument(boss, this_plugin_name, ability_name, 0);
 	int client=GetClientOfUserId(FF2_GetBossUserId(boss));
 	if (!strcmp(ability_name,"rage_nurse_bowrage"))
 		Rage_Nurse(client);						//Polish Nurse' Bow Rage
 	else if (!strcmp(ability_name,"rage_scout"))
 		Rage_Scout(client);						//Scout Rage
 	else if (!strcmp(ability_name,"rage_giftwrap"))
-		Rage_Giftwrap(client);					//giftwrap Rage		
-	else if (!strcmp(ability_name,"rage_pedo"))	
+		Rage_Giftwrap(client);					//giftwrap Rage
+	else if (!strcmp(ability_name,"rage_pedo"))
 		Rage_Pedo(client);						//Pedo Rage
-	else if (!strcmp(ability_name,"rage_pyrogas"))	
+	else if (!strcmp(ability_name,"rage_pyrogas"))
 		Rage_Pyrogas(client);					//Pyrogas Rage
-	else if (!strcmp(ability_name,"charge_salmon"))
-		Charge_Salmon(ability_name,boss,client,slot,action);			//Zep Mann
+	/* else if (!strcmp(ability_name,"charge_salmon"))
+		Charge_Salmon(ability_name,boss,client,slot,action);			//Zep Mann. HotoCocoaco: this will never call with arg0=1 */
 	else if (!strcmp(ability_name,"rage_abstractspy"))
 		Rage_AbstractSpy(client);				//AbstractSpy Rage
 	else if (!strcmp(ability_name,"rage_gentlemen"))
@@ -557,7 +562,7 @@ public void FF2_OnAbility2(int boss,const char[] plugin_name,const char[] abilit
 stock int SpawnWeapon(int client, char[] name, int index, int level, int quality, char[] attribute, int visible = 1, bool preserve = false)
 {
 	if(StrEqual(name,"saxxy", false)) // if "saxxy" is specified as the name, replace with appropiate name
-	{ 
+	{
 		switch(TF2_GetPlayerClass(client))
 		{
 			case TFClass_Scout: ReplaceString(name, 64, "saxxy", "tf_weapon_bat", false);
@@ -571,7 +576,7 @@ stock int SpawnWeapon(int client, char[] name, int index, int level, int quality
 			case TFClass_Spy: ReplaceString(name, 64, "saxxy", "tf_weapon_knife", false);
 		}
 	}
-	
+
 	if(StrEqual(name, "tf_weapon_shotgun", false)) // If using tf_weapon_shotgun for Soldier/Pyro/Heavy/Engineer
 	{
 		switch(TF2_GetPlayerClass(client))
@@ -624,13 +629,13 @@ stock int SpawnWeapon(int client, char[] name, int index, int level, int quality
 
 	int entity = TF2Items_GiveNamedItem(client, weapon);
 	delete weapon;
-	
+
 	if(!visible)
 	{
 		SetEntProp(entity, Prop_Send, "m_iWorldModelIndex", -1);
 		SetEntPropFloat(entity, Prop_Send, "m_flModelScale", 0.001);
 	}
-	
+
 	if (StrContains(name, "tf_wearable")==-1)
 	{
 		EquipPlayerWeapon(client, entity);
@@ -639,7 +644,7 @@ stock int SpawnWeapon(int client, char[] name, int index, int level, int quality
 	{
 		Wearable_EquipWearable(client, entity);
 	}
-	
+
 	return entity;
 }
 
@@ -711,42 +716,44 @@ public Action RemoveDisguise(Handle timer, any boss)
 		TF2_RemovePlayerDisguise(boss);
 }
 
-void Charge_Salmon(const char[] ability_name, int boss, int client, int slot, int action)
+void Charge_Salmon(const char[] ability_name, int boss, int client, int action)
 {
-	float charge=FF2_GetBossCharge(boss,slot);
+
+	float charge=FF2Player(client).GetRageVar(RT_CHARGE);
 	int var3=FF2_GetAbilityArgument(boss,this_plugin_name,ability_name, 3);	//sound
 	int var4=FF2_GetAbilityArgument(boss,this_plugin_name,ability_name, 4);	//summon_per_rage
 	float duration=FF2_GetAbilityArgumentFloat(boss,this_plugin_name,ability_name,5,3.0); //uber_protection
+	int slot = 1;
 
 	switch(action)
 	{
-		case 1:
+		case 1:	//in cooldown
 		{
 			SetHudTextParams(-1.0, slot==1 ? 0.88 : 0.93, 0.15, 255, 255, 255, 255);
 			ShowSyncHudText(client, jumpHUD, "%t","salmon_status_2",-RoundFloat(charge));
-		}	
-		case 2:
+		}
+		case 2:	//boss can charge/charging now
 		{
 			SetHudTextParams(-1.0, slot==1 ? 0.88 : 0.93, 0.15, 255, 255, 255, 255);
 			if (bEnableSuperDuperJump[client])
 			{
 				SetHudTextParams(-1.0, slot==1 ? 0.88 : 0.93, 0.15, 255, 64, 64, 255);
 				ShowSyncHudText(client, jumpHUD,"%t","super_duper_jump");
-			}	
+			}
 			else
 				ShowSyncHudText(client, jumpHUD, "%t","salmon_status",RoundFloat(charge));
 		}
-		case 3:
+		case 3:	//Use the ability.
 		{
-			Action act = Plugin_Continue;
+			/* Action act = Plugin_Continue;
 			int super = bEnableSuperDuperJump[client];
 			Call_StartForward(OnHaleJump);
 			Call_PushCellRef(super);
 			Call_Finish(act);
 			if (act != Plugin_Continue && act != Plugin_Changed)
 				return;
-			if (act == Plugin_Changed) bEnableSuperDuperJump[client] = super;
-			
+			if (act == Plugin_Changed) bEnableSuperDuperJump[client] = super; */
+
 			if (bEnableSuperDuperJump[client])
 			{
 				float vel[3], rot[3];
@@ -760,18 +767,18 @@ void Charge_Salmon(const char[] ability_name, int boss, int client, int slot, in
 			}
 			else
 			{
-				if(charge<100)
+				/* if(charge<100)
 				{
 					CreateTimer(0.1, Timer_ResetCharge, boss*10000+slot);
-					return;					
-				}
-				
+					return;
+				} */ //unnecessary charge check
+
 				if(var3)
 				{
 					EmitSoundToAll(ZEPH_SND);
 					EmitSoundToAll(ZEPH_SND);
 				}
-				
+
 				int ii;
 				for(int i=0; i<(var4==-1 ? GetAlivePlayerCount((FF2_GetBossTeam()==view_as<int>(TFTeam_Blue)) ? (view_as<int>(TFTeam_Red)) : (view_as<int>(TFTeam_Blue))) : var4); i++)
 				{
@@ -786,7 +793,7 @@ void Charge_Salmon(const char[] ability_name, int boss, int client, int slot, in
 						SummonerIndex[ii]=boss;
 					}
 				}
-			}			
+			}
 		}
 	}
 }
@@ -826,6 +833,36 @@ public Action FF2_OnTriggerHurt(int boss,int triggerhurt,float &damage)
 	return Plugin_Continue;
 }
 
+//Charge salmon
+public void ChargeSalmon_Prethink(int client)
+{
+	if(VSH2GameMode_GetPropInt("iRoundState") != StateRunning)
+	  return;
+
+	if(!IsValidBoss(client))
+	  return;
+
+	FF2Player player = FF2Player(client);
+	float flCharge = player.GetRageVar(RT_CHARGE);
+
+	if (player.SuperJumpThink(10.0, 100.0))
+	{
+		if (flCharge >= 100.0)
+		{
+			Charge_Salmon("charge_salmon", player, client, 3);
+			PrintToChatAll("charge_salmon, action 3");
+			FF2Player(boss).SetRageVar(RT_CHARGE, -2200.0);
+		}
+	}
+	else if (flCharge < 100.0 && flCharge >= 0.0)
+	{
+		Charge_Salmon("charge_salmon", player, client, 2);
+	}
+	else if (flCharge < 100.0)
+	{
+		Charge_Salmon("charge_salmon", player, client, 1);
+	}
+}
 
 stock int GetAlivePlayerCount(int team) // gets the number of alive players
 {
@@ -870,13 +907,13 @@ public Action OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 {
 	int client=GetClientOfUserId(event.GetInt("userid"));
 	int boss=FF2_GetBossIndex(client);
-	
+
 	if(IsValidMinion(client) && !(GetEventInt(event, "death_flags") & TF_DEATHFLAG_DEADRINGER))
 	{
 		SummonerIndex[client]=-1;
 		ChangeClientTeam(client, (FF2_GetBossTeam()==view_as<int>(TFTeam_Blue)) ? (view_as<int>(TFTeam_Red)) : (view_as<int>(TFTeam_Blue)));
 	}
-	
+
 	if(boss!=-1 && FF2_HasAbility(boss, this_plugin_name, "charge_salmon") && !FF2_GetAbilityArgument(boss, this_plugin_name, "charge_salmon", 6) && !(GetEventInt(event, "death_flags") & TF_DEATHFLAG_DEADRINGER))
 	{
 		for(int clone=1; clone<=MaxClients; clone++)
