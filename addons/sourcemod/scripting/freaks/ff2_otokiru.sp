@@ -20,7 +20,7 @@
 
 int AlivePlayerCount;
 Handle jumpHUD;
-Handle OnHaleJump = null;
+//Handle OnHaleJump = null;
 int SummonerIndex[MAXPLAYERS+1];
 int bEnableSuperDuperJump[MAXPLAYERS+1];
 
@@ -39,6 +39,18 @@ public Plugin myinfo = {
 	author = "Otokiru, updated by SHADow93",
 	version = "1.7",
 };
+
+void __NoDefaultSuperJump(FF2Player player) {
+	player.SetPropAny("bNoSuperJump", true);
+}
+
+void __HideHUD(FF2Player player) {
+	player.SetPropAny("bHideHUD", true);
+}
+
+bool __IsHUDVisible(FF2Player player) {
+	return player.GetPropAny("bHideHUD") == 0;
+}
 
 public void OnPluginStart2()
 {
@@ -63,10 +75,10 @@ public void OnPluginStart2()
 	}
 }
 
-public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
+/* public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
 {
 	OnHaleJump = CreateGlobalForward("VSH_OnDoJump", ET_Hook, Param_CellByRef);
-}
+} */
 
 public void Event_RoundStart(Event event, const char[] name, bool dontBroadcast)
 {
@@ -112,8 +124,9 @@ public void HookAbilities()
 				}
 				LoadTranslations(fileName);
 				SDKHook(client, SDKHook_PreThink, ChargeSalmon_Prethink);
-				FF2Player(client).SetPropAny("bNoSuperJump", true);
-				FF2Player(client).SetPropAny("bHideHUD", true);
+				FF2Player player = FF2Player(client);
+				__NoDefaultSuperJump(player);
+				__HideHUD(player);
 			}
 		}
 	}
@@ -756,6 +769,8 @@ void Charge_Salmon(const char[] ability_name, int boss, int client, int action)
 
 			if (bEnableSuperDuperJump[client])
 			{
+				SetHudTextParams(-1.0, slot==1 ? 0.88 : 0.93, 0.15, 255, 64, 64, 255);
+				ShowSyncHudText(client, jumpHUD,"%t","super_duper_jump");
 				float vel[3], rot[3];
 				GetEntPropVector(client, Prop_Data, "m_vecVelocity", vel);
 				GetClientEyeAngles(client, rot);
@@ -845,20 +860,20 @@ public void ChargeSalmon_Prethink(int client)
 	FF2Player player = FF2Player(client);
 	float flCharge = player.GetRageVar(RT_CHARGE);
 
-	if (player.SuperJumpThink(10.0, 100.0))
+	if (player.SuperJumpThink(2.5, 100.0))
 	{
 		if (flCharge >= 100.0)
 		{
 			Charge_Salmon("charge_salmon", player, client, 3);
 			PrintToChatAll("charge_salmon, action 3");
-			FF2Player(boss).SetRageVar(RT_CHARGE, -2200.0);
+			player.SetRageVar(RT_CHARGE, -2200.0);
 		}
 	}
-	else if (flCharge < 100.0 && flCharge >= 0.0)
+	else if (flCharge <= 100.0 && flCharge >= 0.0)
 	{
 		Charge_Salmon("charge_salmon", player, client, 2);
 	}
-	else if (flCharge < 100.0)
+	else if (flCharge < 0.0)
 	{
 		Charge_Salmon("charge_salmon", player, client, 1);
 	}
