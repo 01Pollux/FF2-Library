@@ -798,7 +798,7 @@ void Charge_Salmon(const char[] ability_name, int boss, int client, int action)
 				for(int i=0; i<(var4==-1 ? GetAlivePlayerCount((FF2_GetBossTeam()==view_as<int>(TFTeam_Blue)) ? (view_as<int>(TFTeam_Red)) : (view_as<int>(TFTeam_Blue))) : var4); i++)
 				{
 					ii = GetRandomDeadPlayer();
-					if(ii != -1)
+					if(ii > 0)
 					{
 						FF2Player(ii).ConvertToMinion(0.1);
 						DataPack pack;
@@ -806,6 +806,7 @@ void Charge_Salmon(const char[] ability_name, int boss, int client, int action)
 						pack.WriteCell(ii);
 						pack.WriteFloat(duration);
 						SummonerIndex[ii]=boss;
+						PrintToChatAll("转换%N 为 Minion", ii);
 					}
 				}
 			}

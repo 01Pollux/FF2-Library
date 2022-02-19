@@ -1,6 +1,6 @@
-/*SHADoW93 Abilities Pack 
+/*SHADoW93 Abilities Pack
  by SHADoW NiNE TR3S
- 
+
  with some code snippets from:
  -MasterOfTheXP
  -Friagram
@@ -61,7 +61,7 @@ enum VoiceMode
 #define RSALMON "rage_summon"
 #define THRILLER "rage_thriller_taunt"
 #define BUILDABLE "rage_buildable"
- 
+
 // Charge Ability
 #define CSALMON "charge_summon"
 
@@ -218,11 +218,11 @@ public void OnPluginStart2()
 	HookEvent("arena_win_panel", Event_RoundEnd, EventHookMode_Pre);
 	HookEvent("player_death", Event_PlayerDeath, EventHookMode_Post);
 	AddNormalSoundHook(SoundHook);
-	
+
 	// Notification Sounds
 	PrecacheSound(MANN_SND,true);
 	PrecacheSound(BUILDABLE_SND,true);
-	
+
 	// Class Voice Reaction Lines
 	for (int i = 0; i < sizeof(ScoutReact); i++)
 	{
@@ -260,13 +260,13 @@ public void OnPluginStart2()
 	{
 		PrecacheSound(SpyReact[i], true);
 	}
-	
+
 	// Translations file
 	LoadTranslations("ff2_shadow93.phrases");
-	
+
 	// HUD
 	jumpHUD = CreateHudSynchronizer();
-	
+
 	// Ugh, y u no precache?
 	PrecacheSound("mvm/giant_common/giant_common_step_01.wav", true);
 	PrecacheSound("mvm/giant_common/giant_common_step_02.wav", true);
@@ -276,16 +276,16 @@ public void OnPluginStart2()
 	PrecacheSound("mvm/giant_common/giant_common_step_06.wav", true);
 	PrecacheSound("mvm/giant_common/giant_common_step_07.wav", true);
 	PrecacheSound("mvm/giant_common/giant_common_step_08.wav", true);
-	
+
 	isHitBoxAvailable=((FindSendPropInfo("CBasePlayer", "m_vecSpecifiedSurroundingMins") != -1) && FindSendPropInfo("CBasePlayer", "m_vecSpecifiedSurroundingMaxs") != -1);
-	
+
 	if(FF2_GetRoundState()==1)
 	{
 		CreateTimer(0.3, CheckAbility, _,TIMER_FLAG_NO_MAPCHANGE);
 	}
 }
 
-public void OnClientDisconnect(client) 
+public void OnClientDisconnect(client)
 {
 	if(revivemarkers != -1)
 	{
@@ -302,7 +302,7 @@ public void OnClientDisconnect(client)
 *************************************************************
 */
 
-public Action Event_PlayerInventory(Event event, const char[] name, bool dontbroadcast) 
+public Action Event_PlayerInventory(Event event, const char[] name, bool dontbroadcast)
 {
 	int client = GetClientOfUserId(event.GetInt("userid"));
 	if(HookHealth[client])
@@ -313,7 +313,7 @@ public Action Event_PlayerInventory(Event event, const char[] name, bool dontbro
 	{
 		RemoveReanimator(client);
 	}
-	
+
 	return Plugin_Continue;
 }
 
@@ -344,7 +344,7 @@ public Action Event_RoundEnd(Event event, const char[] name, bool dontbroadcast)
 			Vaccinator_AMS[client]=false;
 			Buildable_AMS[client]=false;
 			Thriller_AMS[client]=false;
-		
+
 			ResetSalmonSettings(client);
 		}
 	}
@@ -374,28 +374,28 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontbroadca
 {
 	int attacker=GetClientOfUserId(event.GetInt("attacker"));
 	int client=GetClientOfUserId(event.GetInt("userid"));
-	
+
 	int boss=FF2_GetBossIndex(attacker); // Boss is an attacker
 	if(boss!=-1)
 	{
-	
+
 		if(FF2_HasAbility(boss, this_plugin_name, RANDOMMODEL_KILL))
 		{
 			SetRandomModel(boss, client, RANDOMMODEL_KILL);
 		}
 	}
-	
+
 	if((event.GetInt("death_flags") & TF_DEATHFLAG_DEADRINGER))
 		return Plugin_Continue; // Prevent a bug with revive markers & dead ringer spies
-	
+
 	{
 		DontSlay[client]=false;
-		
+
 		if(HookHealth[client])
 		{
 			SDKUnhook(client, SDKHook_GetMaxHealth, GetMaxHealth_Minion);
 		}
-		
+
 		switch(revivemarkers)
 		{
 			case 0: // Only Non-Boss Team
@@ -403,26 +403,26 @@ public Action Event_PlayerDeath(Event event, const char[] name, bool dontbroadca
 				if(GetFF2BossType(client)==FF2BossType_NotABoss)
 					DropReanimator(client);
 			}
-			case 1: // Minions can revive each other	
+			case 1: // Minions can revive each other
 			{
 				if(GetFF2BossType(client)==FF2BossType_IsMinion || GetFF2BossType(client)==FF2BossType_NotABoss)
 					DropReanimator(client);
 			}
-			case 2: // Only Minions can revive each other	
+			case 2: // Only Minions can revive each other
 			{
 				if(GetFF2BossType(client)==FF2BossType_IsMinion)
 					DropReanimator(client);
 			}
 		}
-		
+
 		if(GetFF2BossType(client)==FF2BossType_IsMinion && !revivemarkers)
 		{
 			ResetSalmonSettings(client);
 			ChangeClientTeam(client, (FF2_GetBossTeam()==_:TFTeam_Blue) ? (_:TFTeam_Red) : (_:TFTeam_Blue));
 		}
 	}
-	
-	boss=FF2_GetBossIndex(client);	// Boss is the victim	
+
+	boss=FF2_GetBossIndex(client);	// Boss is the victim
 	if(boss != -1 && (FF2_HasAbility(boss, this_plugin_name, RSALMON) || FF2_HasAbility(boss, this_plugin_name, CSALMON)))
 	{
 		for(int clone=1; clone<=MaxClients; clone++)
@@ -447,18 +447,18 @@ stock void ResetSalmonSettings(int client)
 	{
 		SDKUnhook(client, SDKHook_GetMaxHealth, GetMaxHealth_Minion);
 		HookHealth[client]=false;
-	}	
+	}
 	HookHealth[client]=false;
 	if(GetEntityGravity(client)!=1.0)
 	{
 		SetEntityGravity(client, 1.0);
 	}
-			
+
 	if(mMoveType[client]!=MOVETYPE_WALK)
 	{
 		SetEntityMoveType(client, MOVETYPE_WALK);
 	}
-			
+
 	if(GetEntPropFloat(client, Prop_Send, "m_flModelScale")!=1.0)
 	{
 		float curpos[3];
@@ -476,7 +476,7 @@ stock void ResetSalmonSettings(int client)
 	}
 }
 
-public Action Event_ChangeClass(Event event, const char[] name, bool dontbroadcast) 
+public Action Event_ChangeClass(Event event, const char[] name, bool dontbroadcast)
 {
 	if(revivemarkers!= -1)
 	{
@@ -507,7 +507,7 @@ public Action TauntSliding(Handle timer, any userid)
 		TF2_RemoveCondition(client,TFCond_Taunting);
 	}
 	return Plugin_Continue;
-}	
+}
 
 public Action CheckAbility(Handle timer) // Check for abilities
 {
@@ -530,12 +530,12 @@ public Action CheckAbility(Handle timer) // Check for abilities
 		Vaccinator_AMS[client]=false;
 		Buildable_AMS[client]=false;
 		Thriller_AMS[client]=false;
-		
+
 		int boss=FF2_GetBossIndex(client);
 		if(boss>=0)
-		{	
+		{
 			if (FF2_HasAbility(boss, this_plugin_name, ROBOT))
-			{	
+			{
 				int botmode=FF2_GetAbilityArgument(boss,this_plugin_name,ROBOT, 1);
 				if(botmode)
 					VOMode[client]=VoiceMode_GiantRobot;
@@ -563,7 +563,7 @@ public Action CheckAbility(Handle timer) // Check for abilities
 					if(FF2_RandomSound("sound_intromusic", INTROM, sizeof(INTROM), boss))
 					{
 						EmitSoundToAll(INTROM);
-					}		
+					}
 				}
 			}
 			if(FF2_HasAbility(boss, this_plugin_name, OUTTRO))
@@ -584,9 +584,9 @@ public Action CheckAbility(Handle timer) // Check for abilities
 						if(FF2_RandomSound("sound_outtromusic_win", trackList, sizeof(trackList), boss))
 						{
 							strcopy(VictoryTrack, sizeof(VictoryTrack), trackList);
-						}	
+						}
 					}
-				
+
 					if(DefeatTrack[0])
 					{
 						PrecacheSound(DefeatTrack, true);
@@ -596,18 +596,18 @@ public Action CheckAbility(Handle timer) // Check for abilities
 						if(FF2_RandomSound("sound_outtromusic_lose", trackList, sizeof(trackList), boss))
 						{
 							strcopy(DefeatTrack, sizeof(DefeatTrack), trackList);
-						}	
+						}
 						else if(VictoryTrack[0])
 						{
 							strcopy(DefeatTrack, sizeof(DefeatTrack), VictoryTrack);
 							PrecacheSound(DefeatTrack, true);
 						}
 					}
-	
+
 					if(StalemateTrack[0])
 					{
 						PrecacheSound(StalemateTrack, true);
-					}	
+					}
 					else
 					{
 						if(FF2_RandomSound("sound_outtromusic_lose", trackList, sizeof(trackList), boss))
@@ -656,7 +656,7 @@ public void Event_RoundStart(Event event, const char[] name, bool dontBroadcast)
 	{
 		if(!IsValidClient(client))
 			continue;
-			
+
 		int boss=FF2_GetBossIndex(client);
 		if(boss>=0)
 		{
@@ -667,7 +667,7 @@ public void Event_RoundStart(Event event, const char[] name, bool dontBroadcast)
 				minToSpawn2[client]=FF2_GetAbilityArgument(boss,this_plugin_name,RSALMON, 25);
 			}
 		}
-		
+
 	}
 }
 
@@ -696,10 +696,10 @@ public Action FF2_OnAbility2(int boss,const char[] plugin_name, const char[] abi
 {
 	if(!FF2_IsFF2Enabled() || FF2_GetRoundState()!=1)
 		return Plugin_Continue;
-		
+
 	int client=GetClientOfUserId(FF2_GetBossUserId(boss));
 	int slot=FF2_GetAbilityArgument(boss, this_plugin_name, ability_name, 0);
-	
+
 	// Non-AMS supported abilities
 	if (!strcmp(ability_name,TAUNTSLIDE)) 	// Taunt Sliding!!!!!
 	{
@@ -717,7 +717,7 @@ public Action FF2_OnAbility2(int boss,const char[] plugin_name, const char[] abi
 	{
 		Charge_Salmon(ability_name,boss,slot,action, client);			// Upgraded version of Otokiru's Charge_Salmon
 	}
-	
+
 	// AMS supported abilities
 	else if(!strcmp(ability_name, VACCINATOR))  // Vaccinator resistances
 	{
@@ -753,7 +753,7 @@ public Action FF2_OnAbility2(int boss,const char[] plugin_name, const char[] abi
 			}
 		}
 		SMN_Invoke(client, null);
-	}	
+	}
 	else if (!strcmp(ability_name,THRILLER))
 	{
 		if(Thriller_AMS[client])
@@ -822,9 +822,9 @@ public void MJT_Invoke(int client, StringMap _map)
 				if(TF2_IsPlayerInCondition(target, TFCond_StealthedUserBuffFade)) continue;
 				if(TF2_IsPlayerInCondition(target, TFCond_Cloaked)) continue;
 				if(TF2_IsPlayerInCondition(target, TFCond_DeadRingered)) continue;
-				if(TF2_IsPlayerInCondition(target, TFCond_UberchargedCanteen)) continue;			
-				
-				
+				if(TF2_IsPlayerInCondition(target, TFCond_UberchargedCanteen)) continue;
+
+
 				if(TF2_IsPlayerInCondition(target, TFCond_Taunting))
 				{
 					TF2_RemoveCondition(target,TFCond_Taunting);
@@ -833,7 +833,7 @@ public void MJT_Invoke(int client, StringMap _map)
 				{
 					TF2_RemoveCondition(target, TFCond_HalloweenThriller);
 				}
-				
+
 				SetVariantInt(0);
 				AcceptEntityInput(target, "SetForcedTauntCam");
 				TF2_AddCondition(target, TFCond_HalloweenThriller, 3.0);
@@ -841,7 +841,7 @@ public void MJT_Invoke(int client, StringMap _map)
 			}
 		}
 	}
-	
+
 	if(maxdances>0)
 	{
 		CreateTimer(3.0, ThrillerTaunt, boss, TIMER_REPEAT|TIMER_FLAG_NO_MAPCHANGE);
@@ -857,14 +857,14 @@ public Action ThrillerTaunt(Handle timer, any boss)
 	int maxdances=FF2_GetAbilityArgument(boss,this_plugin_name,THRILLER, 1, 1);
 	int mode=FF2_GetAbilityArgument(boss,this_plugin_name,THRILLER, 2);
 	float maxdist=FF2_GetAbilityArgumentFloat(boss,this_plugin_name,THRILLER, 3, FF2_GetRageDist(boss, this_plugin_name, THRILLER));
-	
+
 	if(dances>=maxdances || !IsValidClient(client, true) || FF2_GetRoundState()!=1)
 	{
 		targets=0;
 		dances=0;
 		return Plugin_Stop;
 	}
-	
+
 	GetEntPropVector(client, Prop_Send, "m_vecOrigin", pos);
 	for(int target=1; target<=MaxClients; target++)
 	{
@@ -887,9 +887,9 @@ public Action ThrillerTaunt(Handle timer, any boss)
 				if(TF2_IsPlayerInCondition(target, TFCond_StealthedUserBuffFade)) continue;
 				if(TF2_IsPlayerInCondition(target, TFCond_Cloaked)) continue;
 				if(TF2_IsPlayerInCondition(target, TFCond_DeadRingered)) continue;
-				if(TF2_IsPlayerInCondition(target, TFCond_UberchargedCanteen)) continue;			
-				
-				
+				if(TF2_IsPlayerInCondition(target, TFCond_UberchargedCanteen)) continue;
+
+
 				if(TF2_IsPlayerInCondition(target, TFCond_Taunting))
 				{
 					TF2_RemoveCondition(target,TFCond_Taunting);
@@ -898,7 +898,7 @@ public Action ThrillerTaunt(Handle timer, any boss)
 				{
 					TF2_RemoveCondition(target, TFCond_HalloweenThriller);
 				}
-				
+
 				SetVariantInt(0);
 				AcceptEntityInput(target, "SetForcedTauntCam");
 				TF2_AddCondition(target, TFCond_HalloweenThriller, 3.0);
@@ -907,7 +907,7 @@ public Action ThrillerTaunt(Handle timer, any boss)
 			}
 		}
 	}
-	
+
 	if(targets)
 	{
 		dances++;
@@ -1018,7 +1018,7 @@ public void VAC_Invoke(int client, StringMap _map)
 	{
 		TF2_AddCondition(client, TFCond_UberFireResist, FF2_GetAbilityArgumentFloat(boss,this_plugin_name,VACCINATOR,2,5.0)); //Fire Resistance
 		TF2_AddCondition(client, TFCond_FireImmune, FF2_GetAbilityArgumentFloat(boss,this_plugin_name,VACCINATOR,2,5.0)); //Shield Portion
-	}	
+	}
 }
 
 public AMSResult SMN_CanInvoke(int client, StringMap _map)
@@ -1035,7 +1035,7 @@ public void SMN_Invoke(int client, StringMap _map)
 		PrintHintText(client, "Alive minion quota exceeded (%i / %i)!", GetMinionCount(), minToSpawn2[client]);
 		return;
 	}
-	
+
 	PrepareSalmon(boss, client, RSALMON, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 27, 28, 29, 30, 31, 32, 33, 34, 35, 36);
 }
 
@@ -1067,7 +1067,7 @@ public void PrepareSalmon(int boss, int client, const char[] ability_name, int a
 	FF2_GetAbilityArgumentString(boss, this_plugin_name, ability_name, arg23, summoned, sizeof(summoned));				// Text to show to summoned
 	bool noslayminions=view_as<bool>(FF2_GetAbilityArgument(boss,this_plugin_name,ability_name, arg24));				// Slay minions if owner dies?
 	float scale=FF2_GetAbilityArgumentFloat(boss, this_plugin_name, ability_name, arg25);								// Minion scale
-	float gravity=FF2_GetAbilityArgumentFloat(boss, this_plugin_name, ability_name, arg26);								// Gravity	
+	float gravity=FF2_GetAbilityArgumentFloat(boss, this_plugin_name, ability_name, arg26);								// Gravity
 	FF2_GetAbilityArgumentString(boss, this_plugin_name, ability_name, arg27, moveType, sizeof(moveType));				// Movetype
 	FF2_GetAbilityArgumentString(boss, this_plugin_name, ability_name, arg28, prgba, sizeof(prgba));					// Player RBG + Alpha
 	FF2_GetAbilityArgumentString(boss, this_plugin_name, ability_name, arg29, wrgba, sizeof(wrgba));					// Weapon RGB + Alpha
@@ -1086,12 +1086,12 @@ void Charge_Salmon(const char[] ability_name, int index, int slot, int action, i
 	float rCost = FF2_GetAbilityArgumentFloat(index, this_plugin_name, ability_name, 6);
 	minRestrict[client]=view_as<bool>(FF2_GetAbilityArgument(index,this_plugin_name,ability_name, 27));
 	minToSpawn[client]=FF2_GetAbilityArgument(index,this_plugin_name,ability_name, 28);
-	
+
 	FF2_GetAbilityArgumentString(index, this_plugin_name, ability_name, 37, status, sizeof(status));
-	FF2_GetAbilityArgumentString(index, this_plugin_name, ability_name, 38, status2, sizeof(status2));	
+	FF2_GetAbilityArgumentString(index, this_plugin_name, ability_name, 38, status2, sizeof(status2));
 	FF2_GetAbilityArgumentString(index, this_plugin_name, ability_name, 39, status3, sizeof(status3));
 	FF2_GetAbilityArgumentString(index, this_plugin_name, ability_name, 40, status4, sizeof(status4));
-	
+
 	if(!status[0])
 	{
 		Format(status, sizeof(status), "%t", "summon_status");
@@ -1108,12 +1108,12 @@ void Charge_Salmon(const char[] ability_name, int index, int slot, int action, i
 	{
 		Format(status3, sizeof(status4), "%t", "summon_ready");
 	}
-	
+
 	if(minRestrict[client] && GetMinionCount()>minToSpawn[client])
 	{
 		return;
 	}
-	
+
 	if(rCost && !bEnableSuperDuperJump[client])
 	{
 		if(bCharge<rCost)
@@ -1127,16 +1127,16 @@ void Charge_Salmon(const char[] ability_name, int index, int slot, int action, i
 		{
 			SetHudTextParams(-1.0, slot==1 ? 0.88 : 0.93, 0.15, 255, 255, 255, 255);
 			ShowSyncHudText(client, jumpHUD, status2, -RoundFloat(charge));
-		}	
+		}
 		case 2:
 		{
 			SetHudTextParams(-1.0, slot==1 ? 0.88 : 0.93, 0.15, 255, bEnableSuperDuperJump[client] && slot == 1 ? 64 : 255, bEnableSuperDuperJump[client] && slot == 1 ? 64 : 255, 255);
 			if (bEnableSuperDuperJump[client] && slot == 1)
 			{
 				ShowSyncHudText(client, jumpHUD, status3);
-			}	
+			}
 			else
-			{	
+			{
 				ShowSyncHudText(client, jumpHUD, status, RoundFloat(charge));
 			}
 		}
@@ -1159,13 +1159,13 @@ void Charge_Salmon(const char[] ability_name, int index, int slot, int action, i
 				if(charge<100)
 				{
 					CreateTimer(0.1, ResetCharge, index*10000+slot);
-					return;					
+					return;
 				}
 				if(rCost)
 				{
 					FF2_SetBossCharge(index,0,bCharge-rCost);
 				}
-				
+
 				PrepareSalmon(index, client, ability_name, 3, 4, 5, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 29, 30, 31, 32, 33, 34, 35, 36, 37, 38);
 				float position[3];
 				char sound[PLATFORM_MAX_PATH];
@@ -1173,7 +1173,7 @@ void Charge_Salmon(const char[] ability_name, int index, int slot, int action, i
 				{
 					EmitSoundToAll(sound, client, _, _, _, _, _, index, position);
 					EmitSoundToAll(sound, client, _, _, _, _, _, index, position);
-	
+
 					for(int target=1; target<=MaxClients; target++)
 					{
 						if(IsClientInGame(target) && target!=index)
@@ -1183,7 +1183,7 @@ void Charge_Salmon(const char[] ability_name, int index, int slot, int action, i
 						}
 					}
 				}
-			}			
+			}
 		}
 		default:
 		{
@@ -1194,7 +1194,7 @@ void Charge_Salmon(const char[] ability_name, int index, int slot, int action, i
 			}
 		}
 	}
-	
+
 }
 
 /*
@@ -1245,7 +1245,7 @@ public Action SoundHook(int clients[MAXPLAYERS], int& numClients, char vl[PLATFO
 					pitch = GetRandomInt(95, 100);
 					EmitSoundToAll(vl, client, _, _, _, 0.25, pitch);
 				}
-				
+
 				if(channel==SNDCHAN_VOICE)
 				{
 					if (volume == 0.99997) return Plugin_Continue;
@@ -1272,7 +1272,7 @@ public Action SoundHook(int clients[MAXPLAYERS], int& numClients, char vl[PLATFO
 					pitch = GetRandomInt(95, 100);
 					EmitSoundToAll(vl, client, _, _, _, 0.25, pitch);
 				}
-				
+
 				if(channel==SNDCHAN_VOICE)
 				{
 					if (volume == 0.99997) return Plugin_Continue;
@@ -1320,7 +1320,7 @@ public Action SoundHook(int clients[MAXPLAYERS], int& numClients, char vl[PLATFO
 	return Plugin_Continue;
 }
 
-public Action SaveMinion(int client, int& attacker, int& inflictor, 
+public Action SaveMinion(int client, int& attacker, int& inflictor,
 							float& damage, int& damagetype, int& weapon,
 							float damageForce[3], float damagePosition[3], int damagecustom)
 {
@@ -1368,7 +1368,7 @@ public Action SaveMinion(int client, int& attacker, int& inflictor,
 */
 
 /*
-	Prethink 
+	Prethink
 */
 public void MinionMoveType_PreThink(int client)
 {
@@ -1378,7 +1378,7 @@ public void MinionMoveType_PreThink(int client)
 		SetEntityMoveType(client, mMoveType[client]);
 		SDKUnhook(client, SDKHook_PreThink, MinionMoveType_PreThink);
 	}
-	
+
 	// This is to prevent bosses from getting stuck on the ground.
 	if(mMoveType[client]!=MOVETYPE_NONE && mMoveType[client]!=MOVETYPE_WALK)
 	{
@@ -1447,7 +1447,7 @@ bool Resize_OneTrace(const float startPos[3], const float endPos[3])
 	{
 		return false;
 	}
-	
+
 	return true;
 }
 
@@ -1462,26 +1462,26 @@ bool Resize_TestResizeOffset(const float bossOrigin[3], float xOffset, float yOf
 	targetOrigin[0] = bossOrigin[0] + xOffset;
 	targetOrigin[1] = bossOrigin[1] + yOffset;
 	targetOrigin[2] = bossOrigin[2];
-	
+
 	if (!(xOffset == 0.0 && yOffset == 0.0))
 		if (!Resize_OneTrace(tmpOrigin, targetOrigin))
 			return false;
-		
+
 	tmpOrigin[0] = targetOrigin[0];
 	tmpOrigin[1] = targetOrigin[1];
 	tmpOrigin[2] = targetOrigin[2] + zOffset;
 
 	if (!Resize_OneTrace(targetOrigin, tmpOrigin))
 		return false;
-		
+
 	targetOrigin[0] = bossOrigin[0];
 	targetOrigin[1] = bossOrigin[1];
 	targetOrigin[2] = bossOrigin[2] + zOffset;
-		
+
 	if (!(xOffset == 0.0 && yOffset == 0.0))
 		if (!Resize_OneTrace(tmpOrigin, targetOrigin))
 			return false;
-		
+
 	return true;
 }
 
@@ -1556,7 +1556,7 @@ bool Resize_TestSquare(const float bossOrigin[3], float xmin, float xmax, float 
 				return false;
 		}
 	}
-		
+
 	return true;
 }
 
@@ -1599,7 +1599,7 @@ public bool IsSpotSafe(clientIdx, float playerPos[3], float sizeMultiplier)
 	if (!Resize_TestSquare(playerPos, mins[0] * 0.75, maxs[0] * 0.75, mins[1] * 0.75, maxs[1] * 0.75, maxs[2])) return false;
 	if (!Resize_TestSquare(playerPos, mins[0] * 0.5, maxs[0] * 0.5, mins[1] * 0.5, maxs[1] * 0.5, maxs[2])) return false;
 	if (!Resize_TestSquare(playerPos, mins[0] * 0.25, maxs[0] * 0.25, mins[1] * 0.25, maxs[1] * 0.25, maxs[2])) return false;
-	
+
 	return true;
 }
 
@@ -1934,7 +1934,7 @@ stock void ClassResponses(int client) // Simple Class responses
 			case TFClass_Engineer: // Engineer
 			{
 				strcopy(Reaction, PLATFORM_MAX_PATH, EngyReact[GetRandomInt(0, sizeof(EngyReact)-1)]);
-			}	
+			}
 			case TFClass_Medic: // Medic
 			{
 				strcopy(Reaction, PLATFORM_MAX_PATH, MedicReact[GetRandomInt(0, sizeof(MedicReact)-1)]);
@@ -1970,7 +1970,7 @@ stock void TeleToRandomPlayer(int client) // Teleport to random player
 			return;
 	}
 	while (AlivePlayers && (!IsValidEdict(target) || (target==client) || !IsPlayerAlive(target)));
-	
+
 	if (IsValidEdict(target))
 	{
 		GetEntPropVector(target, Prop_Data, "m_vecOrigin", pos_2);
@@ -2050,16 +2050,16 @@ stock void DropReanimator(int client) // Drops a revive marker
 	int ent = CreateEntityByName("entity_revive_marker");
 	if (ent)
 	{
-		SetEntPropEnt(ent, Prop_Send, "m_hOwner", client); // client index 
-		SetEntProp(ent, Prop_Send, "m_nSolidType", 2); 
-		SetEntProp(ent, Prop_Send, "m_usSolidFlags", 8); 
-		SetEntProp(ent, Prop_Send, "m_fEffects", 16); 	
-		SetEntProp(ent, Prop_Send, "m_iTeamNum", clientTeam); // client team 
-		SetEntProp(ent, Prop_Send, "m_CollisionGroup", 1); 
-		SetEntProp(ent, Prop_Send, "m_bSimulatedEveryTick", 1); 
-		SetEntProp(ent, Prop_Send, "m_nBody", _:TF2_GetPlayerClass(client) - 1); 
-		SetEntProp(ent, Prop_Send, "m_nSequence", 1); 
-		SetEntPropFloat(ent, Prop_Send, "m_flPlaybackRate", 1.0);  
+		SetEntPropEnt(ent, Prop_Send, "m_hOwner", client); // client index
+		SetEntProp(ent, Prop_Send, "m_nSolidType", 2);
+		SetEntProp(ent, Prop_Send, "m_usSolidFlags", 8);
+		SetEntProp(ent, Prop_Send, "m_fEffects", 16);
+		SetEntProp(ent, Prop_Send, "m_iTeamNum", clientTeam); // client team
+		SetEntProp(ent, Prop_Send, "m_CollisionGroup", 1);
+		SetEntProp(ent, Prop_Send, "m_bSimulatedEveryTick", 1);
+		SetEntProp(ent, Prop_Send, "m_nBody", _:TF2_GetPlayerClass(client) - 1);
+		SetEntProp(ent, Prop_Send, "m_nSequence", 1);
+		SetEntPropFloat(ent, Prop_Send, "m_flPlaybackRate", 1.0);
 		SetEntProp(ent, Prop_Data, "m_iInitialTeamNum", clientTeam);
 		SetEntDataEnt2(client, FindSendPropInfo("CTFPlayer", "m_nForcedSkin")+4, ent);
 		if(GetClientTeam(client) == 3)
@@ -2067,16 +2067,16 @@ stock void DropReanimator(int client) // Drops a revive marker
 		DispatchSpawn(ent);
 		CreateTimer(0.1, MoveMarker, GetClientUserId(client));
 		reviveMarker[client] = EntIndexToEntRef(ent);
-		if(decayTimers[client] == null) 
+		if(decayTimers[client] == null)
 		{
 			decayTimers[client] = CreateTimer(float(decaytime), TimeBeforeRemoval, GetClientUserId(client));
 		}
-	} 
+	}
 }
 
 stock bool IsValidMarker(int marker) // Checks if revive marker is a valid entity.
 {
-	if (IsValidEntity(marker)) 
+	if (IsValidEntity(marker))
 	{
 		static char buffer[128];
 		GetEntityClassname(marker, buffer, sizeof(buffer));
@@ -2117,10 +2117,10 @@ public Action MoveMarker(Handle timer, any userid)
 	TeleportEntity(reviveMarker[client], position, NULL_VECTOR, NULL_VECTOR);
 }
 
-public Action TimeBeforeRemoval(Handle timer, any userid) 
+public Action TimeBeforeRemoval(Handle timer, any userid)
 {
 	int client = GetClientOfUserId(userid);
-	if(!IsValidMarker(EntRefToEntIndex(reviveMarker[client])) || !IsValidClient(client)) 
+	if(!IsValidMarker(EntRefToEntIndex(reviveMarker[client])) || !IsValidClient(client))
 		return Plugin_Handled;
 	if(GetFF2BossType(client)==FF2BossType_IsMinion && !IsPlayerAlive(client) && revivemarkers!=0)
 	{
@@ -2214,7 +2214,7 @@ stock void SetCondition(int client, char[] cond)
 stock int SpawnWeapon(int client, char[] name, int index, int level, int quality, char[] attribute, int visible = 1, bool preserve = false)
 {
 	if(StrEqual(name,"saxxy", false)) // if "saxxy" is specified as the name, replace with appropiate name
-	{ 
+	{
 		switch(TF2_GetPlayerClass(client))
 		{
 			case TFClass_Scout: ReplaceString(name, 64, "saxxy", "tf_weapon_bat", false);
@@ -2228,7 +2228,7 @@ stock int SpawnWeapon(int client, char[] name, int index, int level, int quality
 			case TFClass_Spy: ReplaceString(name, 64, "saxxy", "tf_weapon_knife", false);
 		}
 	}
-	
+
 	if(StrEqual(name, "tf_weapon_shotgun", false)) // If using tf_weapon_shotgun for Soldier/Pyro/Heavy/Engineer
 	{
 		switch(TF2_GetPlayerClass(client))
@@ -2281,13 +2281,13 @@ stock int SpawnWeapon(int client, char[] name, int index, int level, int quality
 
 	int entity = TF2Items_GiveNamedItem(client, weapon);
 	delete weapon;
-	
+
 	if(!visible)
 	{
 		SetEntProp(entity, Prop_Send, "m_iWorldModelIndex", -1);
 		SetEntPropFloat(entity, Prop_Send, "m_flModelScale", 0.001);
 	}
-	
+
 	if (StrContains(name, "tf_wearable")==-1)
 	{
 		EquipPlayerWeapon(client, entity);
@@ -2296,7 +2296,7 @@ stock int SpawnWeapon(int client, char[] name, int index, int level, int quality
 	{
 		Wearable_EquipWearable(client, entity);
 	}
-	
+
 	return entity;
 }
 
@@ -2341,17 +2341,17 @@ public void Salmon(int boss, int client, bool spawnalert, int quantity, float ra
 	{
 		EmitSoundToAll(MANN_SND);
 	}
-	
-	if(GetAlivePlayerCount((TFTeam:FF2_GetBossTeam()==TFTeam_Blue) ? (TFTeam_Red) : (TFTeam_Blue))<quantity || !quantity) 
+
+	if(GetAlivePlayerCount((TFTeam:FF2_GetBossTeam()==TFTeam_Blue) ? (TFTeam_Red) : (TFTeam_Blue))<quantity || !quantity)
 	{
 		quantity=GetAlivePlayerCount((TFTeam:FF2_GetBossTeam()==TFTeam_Blue) ? (TFTeam_Red) : (TFTeam_Blue));
 	}
-	
+
 	if(quantity==-1)
 	{
 		quantity=(ratio ? RoundToCeil(GetAlivePlayerCount((TFTeam:FF2_GetBossTeam()==TFTeam_Blue) ? (TFTeam_Red) : (TFTeam_Blue))*ratio) : MaxClients);
 	}
-	
+
 	FF2Player cur_boss = FF2Player(boss, true);
 	FF2Player r_boss = ToFF2Player(FF2GameMode.GetRandomBoss(true));
 	FF2Player r_dead;
@@ -2364,7 +2364,7 @@ public void Salmon(int boss, int client, bool spawnalert, int quantity, float ra
 			r_dead = FF2Player(ii);
 			r_dead.SetPropAny("bIsMinion", true);
 			r_dead.ForceTeamChange(VSH2Team_Boss);
-			
+
 			if(pickups)
 			{
 				if(pickups==1 || pickups==3)
@@ -2377,7 +2377,7 @@ public void Salmon(int boss, int client, bool spawnalert, int quantity, float ra
 					r_dead.SetPropAny(AMMO_PACK_PROP_KEY, true);
 				}
 			}
-			
+
 			switch(modelmode)
 			{
 				case 1:	// robots
@@ -2387,7 +2387,7 @@ public void Salmon(int boss, int client, bool spawnalert, int quantity, float ra
 						TF2_SetPlayerClass(ii, tfclasstype, _, false);
 						TF2_RegeneratePlayer(ii);
 					}
-				
+
 					char pclassname[10];
 					TF2_GetNameOfClass(TF2_GetPlayerClass(ii), pclassname, sizeof(pclassname));
 					Format(model, PLATFORM_MAX_PATH, "models/bots/%s/bot_%s.mdl", pclassname, pclassname);
@@ -2401,7 +2401,7 @@ public void Salmon(int boss, int client, bool spawnalert, int quantity, float ra
 				case 2: // looks like a random boss
 				{
 					char taunt[PLATFORM_MAX_PATH];
-					
+
 					int cls;
 					TF2_SetPlayerClass(ii, r_boss.GetInt("class", view_as<int>(cls)) ? view_as<TFClassType>(cls):TFClass_Scout, _, false);
 					r_boss.GetString("model", model, PLATFORM_MAX_PATH);
@@ -2433,14 +2433,19 @@ public void Salmon(int boss, int client, bool spawnalert, int quantity, float ra
 					{
 						VOMode[ii]=VoiceMode:voicelinesmode;
 					}
+					if(tfclasstype)
+					{
+						TF2_SetPlayerClass(ii, tfclasstype, _, false);
+						TF2_RegeneratePlayer(ii);
+					}
 				}
 			}
-			
+
 			SetPlayerModel(ii, model);
-			
+
 			DontSlay[ii]=noslay;
-			SummonerIndex[ii]=boss;	
-			
+			SummonerIndex[ii]=boss;
+
 			int playing=0;
 			for(int player=1;player<=MaxClients;player++)
 			{
@@ -2451,7 +2456,7 @@ public void Salmon(int boss, int client, bool spawnalert, int quantity, float ra
 					playing++;
 				}
 			}
-			
+
 			int health=RoundToCeil(ParseFormula(hpFormula, playing));
 			if(health)
 			{
@@ -2463,10 +2468,10 @@ public void Salmon(int boss, int client, bool spawnalert, int quantity, float ra
 					minionMaxHP[ii]=health;
 				}
 			}
-			
+
 			if(conditions[0]!='\0')
 				SetCondition(ii, conditions);
-				
+
 			if(removewearables)
 			{
 				int owner, entity;
@@ -2480,7 +2485,7 @@ public void Salmon(int boss, int client, bool spawnalert, int quantity, float ra
 					if((owner=GetEntPropEnt(entity, Prop_Send, "m_hOwnerEntity"))<=MaxClients && owner>0 && GetClientTeam(owner)==FF2_GetBossTeam())
 						TF2_RemoveWearable(owner, entity);
 			}
-			
+
 			if(notify)
 			{
 				char spcl[768];
@@ -2507,7 +2512,7 @@ public void Salmon(int boss, int client, bool spawnalert, int quantity, float ra
 					}
 				}
 			}
-			
+
 			if(teletoboss)
 			{
 				velocity[0]=GetRandomFloat(300.0, 500.0)*(GetRandomInt(0, 1) ? 1:-1);
@@ -2522,7 +2527,7 @@ public void Salmon(int boss, int client, bool spawnalert, int quantity, float ra
 				}
 				TeleportEntity(ii, position, NULL_VECTOR, velocity);
 			}
-			
+
 			if(scale)
 			{
 				float spawnpos[3];
@@ -2542,8 +2547,8 @@ public void Salmon(int boss, int client, bool spawnalert, int quantity, float ra
 			}
 			SetEntProp(ii, Prop_Data, "m_takedamage", 0);
 			SDKHook(ii, SDKHook_OnTakeDamage, SaveMinion);
-			CreateTimer(4.0, Timer_Enable_Damage, GetClientUserId(ii));			
-			
+			CreateTimer(4.0, Timer_Enable_Damage, GetClientUserId(ii));
+
 			if(moveType[0])
 			{
 				if(StrEqual(moveType, "walk", false))
@@ -2567,17 +2572,17 @@ public void Salmon(int boss, int client, bool spawnalert, int quantity, float ra
 				else if(StrEqual(moveType, "observer", false))
 					mMoveType[ii]=MOVETYPE_OBSERVER;
 				else if(StrEqual(moveType, "custom", false))
-					mMoveType[ii]=MOVETYPE_CUSTOM;	
+					mMoveType[ii]=MOVETYPE_CUSTOM;
 				else if(StrEqual(moveType, "none", false))
 					mMoveType[ii]=MOVETYPE_NONE;
-					
+
 				if(mMoveType[ii]!=MOVETYPE_WALK && mMoveType[ii]!=MOVETYPE_NONE)
 				{
 					SetEntityMoveType(ii, mMoveType[ii]);
 					SDKHook(ii, SDKHook_PreThink, MinionMoveType_PreThink);
 				}
 			}
-			
+
 			switch(weaponmode)
 			{
 				case 2: // No weapons
@@ -2602,7 +2607,7 @@ public void Salmon(int boss, int client, bool spawnalert, int quantity, float ra
 								SetEntityRenderColor(weapon, StringToInt(colors[c]), StringToInt(colors[c+1]), StringToInt(colors[c+2]), StringToInt(colors[c+3]));
 							}
 						}
-					}	
+					}
 					if(worldmodel[0])
 					{
 						int modelIndex=PrecacheModel(worldmodel);
@@ -2610,13 +2615,13 @@ public void Salmon(int boss, int client, bool spawnalert, int quantity, float ra
 						SetEntProp(weapon, Prop_Send, "m_nModelIndexOverrides", modelIndex, _, 1);
 						SetEntProp(weapon, Prop_Send, "m_nModelIndexOverrides", modelIndex, _, 2);
 						SetEntProp(weapon, Prop_Send, "m_nModelIndexOverrides", modelIndex, _, 3);
-						SetEntProp(weapon, Prop_Send, "m_nModelIndexOverrides", (!StrContains(classname, "tf_wearable", true) ? GetEntProp(weapon, Prop_Send, "m_iWorldModelIndex") : GetEntProp(weapon, Prop_Send, "m_nModelIndex")), _, 0);    
+						SetEntProp(weapon, Prop_Send, "m_nModelIndexOverrides", (!StrContains(classname, "tf_wearable", true) ? GetEntProp(weapon, Prop_Send, "m_iWorldModelIndex") : GetEntProp(weapon, Prop_Send, "m_nModelIndex")), _, 0);
 					}
 					if(weaponscale)
 					{
-						SetEntPropFloat(weapon, Prop_Send, "m_flModelScale", weaponscale); 
+						SetEntPropFloat(weapon, Prop_Send, "m_flModelScale", weaponscale);
 					}
-					
+
 					if(accessories!=0)
 					{
 						switch(TF2_GetPlayerClass(ii))
@@ -2662,20 +2667,20 @@ stock void SetPlayerModel(int client, char[] model)
 {
 	if(!model[0])
 	{
-		return;		
+		return;
 	}
-	
+
 	if(!FileExists(model, true))
 	{
 		LogError("Unable to find model %s, reverting to default model...", model);
 		return;
 	}
-	
+
 	if(!IsModelPrecached(model))
 	{
 		PrecacheModel(model);
 	}
-	
+
 	SetVariantString(model);
 	AcceptEntityInput(client, "SetCustomModel");
 	SetEntProp(client, Prop_Send, "m_bUseClassAnimations", 1);
@@ -2721,7 +2726,7 @@ public void UnMakeRobot(int client)
 	}
 }
 
-/* 
+/*
 	Checks if player was roboticized
 */
 public bool IsPlayerRobot(int client)
