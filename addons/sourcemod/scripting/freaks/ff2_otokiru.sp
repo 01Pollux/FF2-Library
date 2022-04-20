@@ -1041,7 +1041,7 @@ public Action _SetUbercharge(Handle timer, DataPack pack)
 {
 	pack.Reset();
 	int target = ToFF2Player(pack.ReadCell()).index;
-	if(target)
+	if(target && IsClientInGame(target))
 	{
 		float duration = pack.ReadFloat();
 		TF2_AddCondition(target, TFCond_Ubercharged, duration);
