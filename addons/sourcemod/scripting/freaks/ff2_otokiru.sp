@@ -798,6 +798,7 @@ void Charge_Salmon(const char[] ability_name, int boss, int client, int action)
 				for(int i=0; i<(var4==-1 ? GetAlivePlayerCount((FF2_GetBossTeam()==view_as<int>(TFTeam_Blue)) ? (view_as<int>(TFTeam_Red)) : (view_as<int>(TFTeam_Blue))) : var4); i++)
 				{
 					ii = GetRandomDeadPlayer();
+					LogMessage("尝试获取随机死亡玩家 %N", ii);
 					if(ii > 0)
 					{
 						FF2Player(ii).ConvertToMinion(0.1);
@@ -809,6 +810,54 @@ void Charge_Salmon(const char[] ability_name, int boss, int client, int action)
 						PrintToChatAll("转换%N 为 Minion", ii);
 					}
 				}
+			}
+		}
+	}
+}
+
+public void Skill_Salmon(const char[] ability_name, int boss, int client)
+{
+	int var3=FF2_GetAbilityArgument(boss,this_plugin_name,ability_name, 3);	//sound
+	int var4=FF2_GetAbilityArgument(boss,this_plugin_name,ability_name, 4);	//summon_per_rage
+	float duration=FF2_GetAbilityArgumentFloat(boss,this_plugin_name,ability_name,5,3.0); //uber_protection
+
+	if (bEnableSuperDuperJump[client])
+	{
+		SetHudTextParams(-1.0, 0.88, 0.15, 255, 64, 64, 255);
+		ShowSyncHudText(client, jumpHUD,"%t","super_duper_jump");
+		float vel[3], rot[3];
+		GetEntPropVector(client, Prop_Data, "m_vecVelocity", vel);
+		GetClientEyeAngles(client, rot);
+		float charge=FF2Player(client).GetRageVar(RT_CHARGE);
+		vel[2]=750.0+500.0*charge/70+2000;
+		vel[0]+=Cosine(DegToRad(rot[0]))*Cosine(DegToRad(rot[1]))*500;
+		vel[1]+=Cosine(DegToRad(rot[0]))*Sine(DegToRad(rot[1]))*500;
+		bEnableSuperDuperJump[client]=false;
+		TeleportEntity(client, NULL_VECTOR, NULL_VECTOR, vel);
+	}
+	else
+	{
+		if(var3)
+		{
+			EmitSoundToAll(ZEPH_SND);
+		}
+
+		PrintToServer("Ready to start the summon!");
+
+		int ii;
+		for(int i=0; i <= var4; i++)
+		{
+			ii = GetRandomDeadPlayer();
+			PrintToServer("Get a dead player %i", ii);
+			if(ii > 0)
+			{
+				FF2Player(ii).ConvertToMinion(0.1);
+				DataPack pack;
+				CreateDataTimer(0.11, _SetUbercharge, pack, TIMER_FLAG_NO_MAPCHANGE);
+				pack.WriteCell(ii);
+				pack.WriteFloat(duration);
+				SummonerIndex[ii]=boss;
+				PrintToServer("Spawned a minion %N", ii);
 			}
 		}
 	}
@@ -860,23 +909,25 @@ public void ChargeSalmon_Prethink(int client)
 
 	FF2Player player = FF2Player(client);
 	float flCharge = player.GetRageVar(RT_CHARGE);
+	char[] ability_name = new char[13];
+	FormatEx(ability_name, 13, "charge_salmon");
 
 	if (player.SuperJumpThink(2.5, 100.0))
 	{
 		if (flCharge >= 100.0)
 		{
-			Charge_Salmon("charge_salmon", player, client, 3);
+			Skill_Salmon(ability_name, player, client);
 			PrintToChatAll("charge_salmon, action 3");
 			player.SetRageVar(RT_CHARGE, -2200.0);
 		}
 	}
 	else if (flCharge <= 100.0 && flCharge >= 0.0)
 	{
-		Charge_Salmon("charge_salmon", player, client, 2);
+		Charge_Salmon(ability_name, player, client, 2);
 	}
 	else if (flCharge < 0.0)
 	{
-		Charge_Salmon("charge_salmon", player, client, 1);
+		Charge_Salmon(ability_name, player, client, 1);
 	}
 }
 
