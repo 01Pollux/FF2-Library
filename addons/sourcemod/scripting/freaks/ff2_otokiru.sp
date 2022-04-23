@@ -851,6 +851,7 @@ public void Skill_Salmon(const char[] ability_name, int boss, int client)
 			PrintToServer("Get a dead player %i", ii);
 			if(ii > 0)
 			{
+				FF2Player(ii).hOwnerBoss = VSH2Player(client);
 				FF2Player(ii).ConvertToMinion(0.1);
 				DataPack pack;
 				CreateDataTimer(0.11, _SetUbercharge, pack, TIMER_FLAG_NO_MAPCHANGE);
