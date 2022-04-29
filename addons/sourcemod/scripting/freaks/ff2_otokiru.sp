@@ -852,16 +852,26 @@ public void Skill_Salmon(const char[] ability_name, int boss, int client)
 			if(ii > 0)
 			{
 				FF2Player(ii).hOwnerBoss = VSH2Player(client);
+				if (!GetEntProp(ii, Prop_Send, "m_iDesiredPlayerClass"))
+				{
+					SetEntProp(client, Prop_Send, "m_iDesiredPlayerClass", 1);
+				}
 				FF2Player(ii).ConvertToMinion(0.1);
 				DataPack pack;
 				CreateDataTimer(0.11, _SetUbercharge, pack, TIMER_FLAG_NO_MAPCHANGE);
 				pack.WriteCell(ii);
 				pack.WriteFloat(duration);
 				SummonerIndex[ii]=boss;
+				CreateTimer(0.11, Timer_RegenerateMinion, ii);
 				PrintToServer("Spawned a minion %N", ii);
 			}
 		}
 	}
+}
+
+public Action Timer_RegenerateMinion(Handle timer, int minion)
+{
+	TF2_RegeneratePlayer(minion);	//make sure minion has weapons.
 }
 
 stock int GetRandomDeadPlayer()
