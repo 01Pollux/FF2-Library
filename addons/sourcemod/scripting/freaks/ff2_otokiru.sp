@@ -101,6 +101,8 @@ public void Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
 		RSpy_AMSMode[client]=false;
 		RGen_AMSMode[client]=false;
 	}
+
+	VSH2_UnhookEx(OnMinionInitialized, Salmon_OnMinionInitialized);
 }
 
 public void HookAbilities()
@@ -127,6 +129,10 @@ public void HookAbilities()
 				FF2Player player = FF2Player(client);
 				__NoDefaultSuperJump(player);
 				__HideHUD(player);
+				if(!VSH2_HookEx(OnMinionInitialized, Salmon_OnMinionInitialized))
+				{
+					LogError("Error loading OnMinionInitialized forwards for ff2_otokiru subplugin.");
+				}
 			}
 		}
 	}
@@ -852,10 +858,6 @@ public void Skill_Salmon(const char[] ability_name, int boss, int client)
 			if(ii > 0)
 			{
 				FF2Player(ii).hOwnerBoss = VSH2Player(client);
-				if (!GetEntProp(ii, Prop_Send, "m_iDesiredPlayerClass"))
-				{
-					SetEntProp(client, Prop_Send, "m_iDesiredPlayerClass", 1);
-				}
 				FF2Player(ii).ConvertToMinion(0.1);
 				DataPack pack;
 				CreateDataTimer(0.11, _SetUbercharge, pack, TIMER_FLAG_NO_MAPCHANGE);
@@ -867,6 +869,18 @@ public void Skill_Salmon(const char[] ability_name, int boss, int client)
 			}
 		}
 	}
+}
+
+public void Salmon_OnMinionInitialized(const VSH2Player player, const VSH2Player master)
+{
+	int client = player.index;
+	if (!GetEntProp(client, Prop_Send, "m_iDesiredPlayerClass"))
+	{
+		SetEntProp(client, Prop_Send, "m_iDesiredPlayerClass", 1);
+	}
+	TF2_SetPlayerClass(client, TFClass_Scout);
+	int weapon = player.SpawnWeapon("tf_weapon_bat", 190, 12, 2, "");
+	SetEntityHealth(client, 125);
 }
 
 public Action Timer_RegenerateMinion(Handle timer, int minion)
