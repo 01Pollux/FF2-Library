@@ -1,8 +1,7 @@
-#define FF2_USING_AUTO_PLUGIN__OLD
-
 #include <sdkhooks>
 #include <tf2_stocks>
 #include <freak_fortress_2>
+#include <freak_fortress_2_subplugin>
 
 #pragma semicolon 1
 #pragma newdecls required
@@ -13,18 +12,24 @@ public Plugin myinfo = {
 	version = "1.0"
 };
 
-int BossTeam = VSH2Team_Boss;
+int BossTeam = view_as<int>(TFTeam_Blue);
 
 float WeaponTime[MAXPLAYERS+1];
 
 public void OnPluginStart2() 
 {
-	
+	HookEvent("arena_round_start", Event_RoundStart);
+	LoadTranslations("freak_fortress_2.phrases");
 }
 
 public void FF2_OnAbility2(int iIndex, const char[] pluginName, const char[] abilityName, int iStatus) {
 	if (!strcmp(abilityName, "rage_timed_new_weapon"))
 		Rage_Timed_New_Weapon(iIndex, abilityName);
+}
+
+
+public void Event_RoundStart(Event hEvent, const char[] sName, bool bDontBroadcast) {
+	BossTeam = FF2_GetBossTeam();
 }
 
 void Rage_Timed_New_Weapon(int iBIndex, const char[] ability_name)
@@ -185,25 +190,25 @@ void ApplyDefaultWeapons(int iClient)
 	{
 		return;
 	}
-	FF2Player player = FF2Player(iClient);
 	TF2_RemoveAllWeapons(iClient);
+	int boss=FF2_GetBossIndex(iClient);
 
-	static char key[48], attributes[256], weapon[64];
-	int val;
+	char weapon[64], attributes[256];
+	static KeyValues config;
+	config = view_as<KeyValues>(FF2_GetSpecialKV(boss));
 	
 	for(int j=1; ; j++)
 	{
-		Format(key, 10, "weapon%i.name", j);
+		config.Rewind();
+		Format(weapon, 10, "weapon%i", j);
 
-		if(player.GetString(key, weapon, sizeof(weapon)))
+		if(config.JumpToKey(weapon))
 		{
-			Format(key, 10, "weapon%i.index", j);
-			if(!player.GetInt(key, val))
-				continue;
-			
-			Format(key, 10, "weapon%i.attributes", j);
-			if(player.GetString(key, attributes, sizeof(attributes)))
+			config.GetString("name", weapon, sizeof(weapon));
+			config.GetString("attributes", attributes, sizeof(attributes));
+			if(attributes[0]!='\0')
 			{
+
 				Format(attributes, sizeof(attributes), "68 ; 2.0 ; 2 ; 3.1 ; %s", attributes);
 					//68: +2 cap rate
 					//2: x3.1 damage
@@ -215,10 +220,8 @@ void ApplyDefaultWeapons(int iClient)
 					//2: x3.1 damage
 			}
 
-			int BossWeapon=SpawnWeapon(iClient, weapon, val, 101, 5, attributes);
-			
-			Format(key, 10, "weapon%i.show", j);
-			if(player.GetInt(key, val) && !val)
+			int BossWeapon=SpawnWeapon(iClient, weapon, config.GetNum("index"), 101, 5, attributes);
+			if(!config.GetNum("show", 0))
 			{
 				SetEntProp(BossWeapon, Prop_Send, "m_iWorldModelIndex", -1);
 				SetEntPropFloat(BossWeapon, Prop_Send, "m_flModelScale", 0.0001);

@@ -18,10 +18,9 @@
 //arg12 = Max glide time
 //Details: You have 1 glide per dash, if you cancel it mid-way, you cannot get it back.
 
-#define FF2_USING_AUTO_PLUGIN__OLD
-
 #include <tf2_stocks>
 #include <freak_fortress_2>
+#include <freak_fortress_2_subplugin>
 
 #pragma semicolon 1
 #pragma newdecls required
@@ -63,11 +62,11 @@ public Action FF2_OnAbility2(int index, const char[] plugin_name, const char[] a
 
 public void OnPluginStart2()
 {
-	HookEvent("teamplay_round_start", _OnRoundStart);
+	HookEvent("teamplay_round_start", OnRoundStart);
 	HookEvent("teamplay_round_win", OnRoundEnd);
 }
 
-public Action _OnRoundStart(Event event, const char[] name, bool dontBroadcast)
+public Action OnRoundStart(Event event, const char[] name, bool dontBroadcast)
 {
 	//PrintToChatAll("Airdash init");
 	

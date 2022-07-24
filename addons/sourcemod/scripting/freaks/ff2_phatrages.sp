@@ -1,9 +1,8 @@
-#define FF2_USING_AUTO_PLUGIN__OLD
-
 #include <sdkhooks>
 #include <tf2_stocks>
 #include <ff2_ams2>
 #include <freak_fortress_2>
+#include <freak_fortress_2_subplugin>
 
 #pragma semicolon 1
 #pragma newdecls required
@@ -1173,7 +1172,7 @@ public void HLF_Invoke(int client, int aidx)
 public Action AfterBurn(Handle timer, DataPack pack)
 {
 	pack.Reset();
-	int client = GetClientFromSerial(pack.ReadCell());
+	int client = pack.ReadCell();
 	int packafterBurnDamage = pack.ReadCell();
 	int packafterBurnDuration = pack.ReadCell();
 	int packDistance = pack.ReadCell();
@@ -1192,14 +1191,7 @@ public Action AfterBurn(Handle timer, DataPack pack)
 		
 		return Plugin_Stop;
 	}
-	if(client)
-		SetExplodeAtClient( client, packafterBurnDamage, packDistance, DMG_BURN );
-	else
-	{
-		gAfterburn = 0;
-		return Plugin_Stop;
-	}
-	
+	SetExplodeAtClient( client, packafterBurnDamage, packDistance, DMG_BURN );
 	gAfterburn++;
 	return Plugin_Continue;	
 }

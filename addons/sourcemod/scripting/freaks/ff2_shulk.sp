@@ -1,7 +1,6 @@
-#define FF2_USING_AUTO_PLUGIN__OLD
-
 #include <tf2_stocks>
 #include <freak_fortress_2>
+#include <freak_fortress_2_subplugin>
 #include <sdkhooks>
 
 #pragma newdecls required
@@ -51,8 +50,7 @@ public Action RoundStarted(Handle event, const char[] name, bool dont)
     {
         if(IsClientInGame(client) && FF2_HasAbility(FF2_GetBossIndex(client), this_plugin_name, "shulk_monadoart"))
         {
-        	static char _name[MAX_BOSS_NAME_SIZE];
-        	FF2Player(client).GetName(_name);
+        	static char name[48]; FF2_GetBossName(FF2_GetBossIndex(client), name, sizeof(name));
         	LogMessage("--------------------------------------------------------------------");
         	LogMessage("[FF2] A boss with unfinished rage ff2_shulk.ff2 is active this round\n" ... 
         				"Boss Name : %s", name);

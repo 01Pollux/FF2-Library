@@ -1,8 +1,7 @@
-#define FF2_USING_AUTO_PLUGIN__OLD
-
 #include <tf2_stocks>
 #include <ff2_ams2>
 #include <freak_fortress_2>
+#include <freak_fortress_2_subplugin>
 
 #pragma semicolon 1
 #pragma newdecls required
@@ -454,12 +453,12 @@ void SpawnMecenaries(int boss, int health, char[] classname, int index, char[] a
 		client = GetRandomDeadPlayer();
 		if(client != -1)
 		{
-			FF2Player player = FF2Player(client);
-			player.SetPropAny("bNoHealthPacks", true);
-			player.SetPropAny("bNoAmmoPacks", true);
-			player.SetPropAny("bIsMinion", true);
+			FF2_SetFF2flags(client,FF2_GetFF2flags(client)|FF2FLAG_ALLOWSPAWNINBOSSTEAM); // Spawn in Boss team
+			FF2_SetFF2flags(client,FF2_GetFF2flags(client)|FF2FLAG_ALLOW_AMMO_PICKUPS); // Ammo Pickup
+			FF2_SetFF2flags(client,FF2_GetFF2flags(client)|FF2FLAG_ALLOW_HEALTH_PICKUPS); // NO HP Pickups!
 			
-			player.ForceTeamChange(VSH2Team_Boss);
+			ChangeClientTeam(client,FF2_GetBossTeam());
+			TF2_RespawnPlayer(client);
 			SummonerIndex[client]=bossIdx;
 			
 			if(classnumber)

@@ -1,10 +1,9 @@
 // no warranty blah blah don't sue blah blah doing this for fun blah blah...
 
-#define FF2_USING_AUTO_PLUGIN__OLD
-
 #include <tf2_stocks>
 #include <sdkhooks>
 #include <freak_fortress_2>
+#include <freak_fortress_2_subplugin>
 #include <ff2_dynamic_defaults>
 
 #pragma semicolon 1
@@ -43,6 +42,7 @@
  */
 
  
+bool DEBUG_FORCE_RAGE = false;
 #define ARG_LENGTH 256
  
 bool PRINT_DEBUG_INFO = true;
@@ -376,11 +376,30 @@ bool TTS_AlsoUseRedSpawn[MAX_PLAYERS_ARRAY]; // arg2
 float TTS_AllowRedSpawnAt[MAX_PLAYERS_ARRAY]; // arg3 + roundstarttime
 bool TTS_OverrideVSPMethod[MAX_PLAYERS_ARRAY]; // arg4
 
+/**
+ * METHODS REQUIRED BY ff2 subplugin
+ */
+void PrintRageWarning()
+{
+	PrintToServer("*********************************************************************");
+	PrintToServer("*                             WARNING                               *");
+	PrintToServer("*       DEBUG_FORCE_RAGE in ff2_sarysamods5.sp is set to true!      *");
+	PrintToServer("*  Any admin can use the 'rage' command to use rages in this pack!  *");
+	PrintToServer("*  This is only for test servers. Disable this on your live server. *");
+	PrintToServer("*********************************************************************");
+}
  
+#define CMD_FORCE_RAGE "rage"
 public void OnPluginStart2()
 {
 	HookEvent("arena_win_panel", Event_RoundEnd, EventHookMode_PostNoCopy);
 	HookEvent("arena_round_start", Event_RoundStart, EventHookMode_PostNoCopy);
+	
+	if (DEBUG_FORCE_RAGE)
+	{
+		PrintRageWarning();
+		RegAdminCmd(CMD_FORCE_RAGE, CmdForceRage, ADMFLAG_GENERIC);
+	}
 	
 	//EET_BoltMaterial = PrecacheModel("materials/sprites/laser.vmt");
 	//EET_BoltMaterial = PrecacheModel("sprites/glow02.vmt");
@@ -405,7 +424,7 @@ public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcas
 		RockSpawnedAt[i] = FAR_FUTURE;
 		RockCollisionCheckAt[i] = FAR_FUTURE;
 	}
-	SS_HUDNextCheck = GetGameTime() + SS_HUD_CHECK_INTERVAL;
+	SS_HUDNextCheck = GetEngineTime() + SS_HUD_CHECK_INTERVAL;
 	SS_HUDMessageIdx = SS_HUD_MSG_NONE;
 	RocksPendingSpawn = 0;
 	for (int i = 0; i < MAX_TOTEMS; i++)
@@ -448,9 +467,9 @@ public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcas
 		HS_CanUse[clientIdx] = FF2_HasAbility(bossIdx, this_plugin_name, HS_STRING);
 		if (HS_CanUse[clientIdx])
 		{
-			HS_LastUpdateAt[clientIdx] = GetGameTime();
+			HS_LastUpdateAt[clientIdx] = GetEngineTime();
 			HS_HUDText[clientIdx][0] = 0;
-			HS_HudRefreshAt[clientIdx] = GetGameTime();
+			HS_HudRefreshAt[clientIdx] = GetEngineTime();
 			
 			HS_ActiveThisRound = true;
 			PluginActiveThisRound = true;
@@ -519,7 +538,7 @@ public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcas
 			}
 			else
 				SS_EventInterval = FF2_GetAbilityArgumentFloat(bossIdx, this_plugin_name, abilityName, 1);
-			SS_NextSpawnAt = GetGameTime() + SS_EventInterval;
+			SS_NextSpawnAt = GetEngineTime() + SS_EventInterval;
 			ReadModel(bossIdx, abilityName, 2, SS_MainModel);
 			SS_StoneCollisionRadius = FF2_GetAbilityArgumentFloat(bossIdx, this_plugin_name, abilityName, 3);
 			SS_MinPlayersToUse = FF2_GetAbilityArgument(bossIdx, this_plugin_name, abilityName, 4);
@@ -672,7 +691,7 @@ public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcas
 			}
 			else
 			{
-				ET_UpdateHUDAt[clientIdx] = GetGameTime();
+				ET_UpdateHUDAt[clientIdx] = GetEngineTime();
 			
 				ET_ActiveThisRound = true;
 				PluginActiveThisRound = true;
@@ -706,7 +725,7 @@ public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcas
 				TTS_ActiveThisRound = true;
 				TTS_MinimumDamage[clientIdx] = FF2_GetAbilityArgumentFloat(bossIdx, this_plugin_name, TTS_STRING, 1);
 				TTS_AlsoUseRedSpawn[clientIdx] = (FF2_GetAbilityArgument(bossIdx, this_plugin_name, TTS_STRING, 2) == 1);
-				TTS_AllowRedSpawnAt[clientIdx] = GetGameTime() + FF2_GetAbilityArgumentFloat(bossIdx, this_plugin_name, TTS_STRING, 3);
+				TTS_AllowRedSpawnAt[clientIdx] = GetEngineTime() + FF2_GetAbilityArgumentFloat(bossIdx, this_plugin_name, TTS_STRING, 3);
 				TTS_OverrideVSPMethod[clientIdx] = (FF2_GetAbilityArgument(bossIdx, this_plugin_name, TTS_STRING, 4) == 1);
 			}
 			else
@@ -878,22 +897,77 @@ public Action Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
 	}
 }
 
-public Action FF2_OnAbility2(int bossPlayer, const char[] plugin_name, const char[] ability_name, int status)
+public Action FF2_OnAbility2(int bossIdx, const char[] plugin_name, const char[] ability_name, int status)
 {
-	if (!RoundInProgress) // don't execute these rages with 0 players alive
+	if (strcmp(plugin_name, this_plugin_name) != 0)
+		return Plugin_Continue;
+	else if (!RoundInProgress) // don't execute these rages with 0 players alive
 		return Plugin_Continue;
 
 	if (!strcmp(ability_name, RSS_STRING))
 	{
 		// all this does is set the sapphire stone timer to now
-		SS_NextSpawnAt = GetGameTime();
+		SS_NextSpawnAt = GetEngineTime();
 	}
 	else if (!strcmp(ability_name, ET_STRING))
 	{
-		Rage_ElementalTotem(bossPlayer);
+		Rage_ElementalTotem(ability_name, bossIdx);
 	}
 		
 	return Plugin_Continue;
+}
+
+/**
+ * Debug Only!
+ */
+public Action CmdForceRage(int user, int argsInt)
+{
+	// get actual args
+	char[] unparsedArgs = new char[ARG_LENGTH];
+	GetCmdArgString(unparsedArgs, ARG_LENGTH);
+	
+	// gotta do this
+	PrintRageWarning();
+	
+	if (!strcmp("sapphire", unparsedArgs))
+	{
+		PrintToConsole(user, "Will trigger Sapphire Stone.");
+		SS_NextSpawnAt = GetEngineTime();
+		return Plugin_Handled;
+	}
+	else if (!strcmp("settotem 0", unparsedArgs))
+	{
+		PrintToConsole(user, "Will set the bot's totem to 0.");
+		ET_CurrentSelection[GetClientOfUserId(FF2_GetBossUserId(0))] = 0;
+		return Plugin_Handled;
+	}
+	else if (!strcmp("settotem 1", unparsedArgs))
+	{
+		PrintToConsole(user, "Will set the bot's totem to 1.");
+		ET_CurrentSelection[GetClientOfUserId(FF2_GetBossUserId(0))] = 1;
+		return Plugin_Handled;
+	}
+	else if (!strcmp("settotem 2", unparsedArgs))
+	{
+		PrintToConsole(user, "Will set the bot's totem to 2.");
+		ET_CurrentSelection[GetClientOfUserId(FF2_GetBossUserId(0))] = 2;
+		return Plugin_Handled;
+	}
+	else if (!strcmp("settotem 3", unparsedArgs))
+	{
+		PrintToConsole(user, "Will set the bot's totem to 3.");
+		ET_CurrentSelection[GetClientOfUserId(FF2_GetBossUserId(0))] = 3;
+		return Plugin_Handled;
+	}
+	else if (!strcmp("totem", unparsedArgs))
+	{
+		PrintToConsole(user, "Will trigger elemental totem.");
+		Rage_ElementalTotem(ET_STRING, 0);
+		return Plugin_Handled;
+	}
+	
+	PrintToServer("[sarysamods5] Rage not found: %s", unparsedArgs);
+	return Plugin_Handled;
 }
 
 /**
@@ -934,7 +1008,7 @@ public void CancelHookshot(int clientIdx, bool ropeSnapped, int errorIdx)
 	
 	// start the cooldown timer, if applicable
 	if ((HS_Flags[clientIdx] & HS_FLAG_COOLDOWN_ON_UNHOOK) == 0)
-		HS_UsableAt[clientIdx] = GetGameTime() + HS_Cooldown[clientIdx];
+		HS_UsableAt[clientIdx] = GetEngineTime() + HS_Cooldown[clientIdx];
 		
 	// remove glow hack
 	if ((HS_Flags[clientIdx] & HS_FLAG_GLOW_HACK) != 0)
@@ -952,7 +1026,7 @@ public void UpdateHookshotHUD(int clientIdx, int errorIdx)
 	if (errorIdx != -1)
 	{
 		HS_HUDErrorIdx[clientIdx] = errorIdx;
-		HS_HudErrorClearAt[clientIdx] = GetGameTime() + 5.0;
+		HS_HudErrorClearAt[clientIdx] = GetEngineTime() + 5.0;
 	}
 		
 	char hudError[HS_HUD_TEXT_LENGTH];
@@ -981,9 +1055,9 @@ public void UpdateHookshotHUD(int clientIdx, int errorIdx)
 	{
 		Format(HS_HUDText[clientIdx], HS_HUD_TEXT_LENGTH, HS_InUseHUDTemplate, hudError);
 	}
-	else if (HS_UsableAt[clientIdx] > GetGameTime())
+	else if (HS_UsableAt[clientIdx] > GetEngineTime())
 	{
-		Format(HS_HUDText[clientIdx], HS_HUD_TEXT_LENGTH, HS_CooldownHUDTemplate, HS_UsableAt[clientIdx] - GetGameTime(), hudError);
+		Format(HS_HUDText[clientIdx], HS_HUD_TEXT_LENGTH, HS_CooldownHUDTemplate, HS_UsableAt[clientIdx] - GetEngineTime(), hudError);
 	}
 	else
 	{
@@ -994,7 +1068,7 @@ public void UpdateHookshotHUD(int clientIdx, int errorIdx)
 	ReplaceString(HS_HUDText[clientIdx], HS_HUD_TEXT_LENGTH, "\\n", "\n");
 	
 	if (!IsEmptyString(hudError))
-		HS_HudErrorClearAt[clientIdx] = GetGameTime() + 5.0;
+		HS_HudErrorClearAt[clientIdx] = GetEngineTime() + 5.0;
 }
 
 //public HS_AdjustVelocity(clientIdx, float xAdjust, float yAdjust, float zAdjust, bool zeroZ)
@@ -1019,7 +1093,7 @@ public void UpdateHookshotHUD(int clientIdx, int errorIdx)
 public void SS_SetHUDMessage(int messageIdx)
 {
 	SS_HUDMessageIdx = messageIdx;
-	SS_HUDMessageExpirationTime = GetGameTime() + (messageIdx == SS_HUD_MSG_NUM_MERCS_ON_STONE ? 9999.0 : SS_HUD_DURATION);
+	SS_HUDMessageExpirationTime = GetEngineTime() + (messageIdx == SS_HUD_MSG_NUM_MERCS_ON_STONE ? 9999.0 : SS_HUD_DURATION);
 }
 
 public void SS_RefreshHUD(float curTime)
@@ -1103,12 +1177,12 @@ public void SS_StartEvent(bool bossTriggered)
 	// instead, they'll be fired at a 45 degree angle with an intensity of around 1000.
 	// random yaw.
 	// since rocks can get stuck inside each other, there needs to be an 0.5s delay between firings.
-	RockNextSpawnAt = GetGameTime() + ROCK_FIRING_INTERVAL;
+	RockNextSpawnAt = GetEngineTime() + ROCK_FIRING_INTERVAL;
 	RocksPendingSpawn = SS_RockMax;
 	RocksAreBossTeam = bossTriggered;
 		
 	// reset the timer
-	SS_NextBeaconAt = GetGameTime() + SS_BEACON_DELAY;
+	SS_NextBeaconAt = GetEngineTime() + SS_BEACON_DELAY;
 	
 	// play the get sound
 	if (bossTriggered && strlen(SS_BossGotStoneSound) > 3)
@@ -1404,7 +1478,7 @@ public bool TraceElectric(int entity, int contentsMask)
  
 public void DrawTotemHUD(int clientIdx)
 {
-	if (GetGameTime() >= ET_UpdateHUDAt[clientIdx])
+	if (GetEngineTime() >= ET_UpdateHUDAt[clientIdx])
 	{
 		static char hudMessage[(MAX_CENTER_TEXT_LENGTH * 2) + 2];
 		if (ET_CurrentSelection[clientIdx] == ET_FIRE)
@@ -2010,9 +2084,9 @@ public void RemoveTotemAt(int totemIdx)
 	Totem_EntRef[MAX_TOTEMS - 1] = 0;
 }
 
-public void Rage_ElementalTotem(int bossIdx)
+public void Rage_ElementalTotem(const char[] ability_name, int bossIdx)
 {
-	int clientIdx = bossIdx;
+	int clientIdx = GetClientOfUserId(FF2_GetBossUserId(bossIdx));
 	if (!ET_CanUse[clientIdx]) // got disabled for some reason
 		return;
 	
@@ -2039,7 +2113,7 @@ public void Rage_ElementalTotem(int bossIdx)
 	
 	// initialize certain things where there's no checking if a particular totem supports it
 	char modelName[MAX_MODEL_FILE_LENGTH];
-	FF2_GetAbilityArgumentString(bossIdx, this_plugin_name, ET_STRING, 6 + ET_CurrentSelection[clientIdx], modelName, MAX_MODEL_FILE_LENGTH);
+	FF2_GetAbilityArgumentString(bossIdx, this_plugin_name, ability_name, 6 + ET_CurrentSelection[clientIdx], modelName, MAX_MODEL_FILE_LENGTH);
 	float duration = 0.0;
 	float sentryStunRadius = 0.0;
 	float buildingDestroyRadius = 0.0;
@@ -2048,9 +2122,9 @@ public void Rage_ElementalTotem(int bossIdx)
 	Totem_DamageSound[totemIdx] = "";
 	Totem_SoundRepeatInterval[totemIdx] = 1.0;
 	Totem_SlowdownFactor[totemIdx] = 1.0;
-	Totem_NextSoundPlayAt[totemIdx] = GetGameTime();
-	Totem_NextSpecialAt[totemIdx] = GetGameTime();
-	Totem_NextInternalAt[totemIdx] = GetGameTime();
+	Totem_NextSoundPlayAt[totemIdx] = GetEngineTime();
+	Totem_NextSpecialAt[totemIdx] = GetEngineTime();
+	Totem_NextInternalAt[totemIdx] = GetEngineTime();
 	Totem_DynamicLight[totemIdx] = 0;
 	Totem_Flags[totemIdx] = 0;
 	for (int j = 1; j < MAX_PLAYERS; j++)
@@ -2189,17 +2263,17 @@ public void Rage_ElementalTotem(int bossIdx)
 	
 	// various sanity checks
 	if (duration <= 0.0)
-		PrintToServer("[sarysamods5] ERROR: Duration for %s is 0.0 or less. Rage won't execute.", ET_STRING);
+		PrintToServer("[sarysamods5] ERROR: Duration for %s is 0.0 or less. Rage won't execute.", ability_name);
 	else if (strlen(modelName) <= 3)
-		PrintToServer("[sarysamods5] ERROR: Invalid model name for %s. Rage won't execute.", ET_STRING);
+		PrintToServer("[sarysamods5] ERROR: Invalid model name for %s. Rage won't execute.", ability_name);
 	else // success! spawn the totem.
 	{
 		Totem_Type[totemIdx] = ET_CurrentSelection[clientIdx];
-		Totem_ExpiresAt[totemIdx] = GetGameTime() + duration;
+		Totem_ExpiresAt[totemIdx] = GetEngineTime() + duration;
 		Totem_Owner[totemIdx] = clientIdx;
-		Totem_NextVisualAt[totemIdx] = GetGameTime() + Totem_VisualEffectInterval[totemIdx];
-		Totem_NextDamageAt[totemIdx] = GetGameTime() + Totem_DamageEffectInterval[totemIdx];
-		Totem_NextParticleAt[totemIdx] = GetGameTime();
+		Totem_NextVisualAt[totemIdx] = GetEngineTime() + Totem_VisualEffectInterval[totemIdx];
+		Totem_NextDamageAt[totemIdx] = GetEngineTime() + Totem_DamageEffectInterval[totemIdx];
+		Totem_NextParticleAt[totemIdx] = GetEngineTime();
 		
 		// fog
 		ET_FogTransitionElapsed = 0.0;
@@ -2365,7 +2439,7 @@ public Action TTS_OnTakeDamage(int victim, int& attacker, int& inflictor,
 			if (damage > TTS_MinimumDamage[victim])
 			{
 				// find a random spawn point
-				//int spawn = FindRandomSpawn(true, TTS_AlsoUseRedSpawn[victim] && GetGameTime() >= TTS_AllowRedSpawnAt[victim]);
+				//int spawn = FindRandomSpawn(true, TTS_AlsoUseRedSpawn[victim] && GetEngineTime() >= TTS_AllowRedSpawnAt[victim]);
 				//if (!IsValidEntity(spawn))
 				//{
 				//	PrintToServer("[sarysamods5] TTS failed to find a player spawn?!");
@@ -2401,7 +2475,7 @@ public void OnGameFrame()
 	if (!PluginActiveThisRound || !RoundInProgress)
 		return;
 		
-	float curTime = GetGameTime();
+	float curTime = GetEngineTime();
 
 	if (SS_ActiveThisRound)
 	{
@@ -2597,7 +2671,7 @@ public Action OnPlayerRunCmd(int clientIdx, int& buttons, int& impulse,
 	// since hookshot reacts mainly to player commands, it's managed here
 	if (HS_ActiveThisRound && HS_CanUse[clientIdx])
 	{
-		float curTime = GetGameTime();
+		float curTime = GetEngineTime();
 		float deltaTime = curTime - HS_LastUpdateAt[clientIdx];
 		if (deltaTime >= 0.01) // ignore extremely small updates
 		{
@@ -2945,7 +3019,7 @@ public Action OnPlayerRunCmd(int clientIdx, int& buttons, int& impulse,
 			HS_LastUpdateAt[clientIdx] = curTime;
 
 			// finally, update the HUD
-			if (HS_HudRefreshAt[clientIdx] <= GetGameTime())
+			if (HS_HudRefreshAt[clientIdx] <= GetEngineTime())
 			{
 				// if hookshot is on cooldown or if it's time to clear the error message, update the HUD message now
 				// or if not enough rage
@@ -2957,7 +3031,7 @@ public Action OnPlayerRunCmd(int clientIdx, int& buttons, int& impulse,
 				// going with the FF2 timer values, since I'd like it to be fairly responsive
 				SetHudTextParams(-1.0, 0.87, 0.15, 64, 64, 255, 192);
 				ShowHudText(clientIdx, -1, HS_HUDText[clientIdx]);
-				HS_HudRefreshAt[clientIdx] = GetGameTime() + 0.1;
+				HS_HudRefreshAt[clientIdx] = GetEngineTime() + 0.1;
 			}
 		}
 	}

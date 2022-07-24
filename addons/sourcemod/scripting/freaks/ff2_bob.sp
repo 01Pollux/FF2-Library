@@ -1,7 +1,8 @@
-#define FF2_USING_AUTO_PLUGIN__OLD
-
+#include <sourcemod>
+#include <tf2>
 #include <tf2_stocks>
 #include <freak_fortress_2>
+#include <freak_fortress_2_subplugin>
 #include <sdkhooks>
 
 bool Bob_Enabled[MAXPLAYERS+1];
@@ -16,7 +17,7 @@ public Plugin myinfo=
 
 public void OnPluginStart2()
 {
-    HookEvent("arena_round_start", _OnRoundStart);
+    HookEvent("arena_round_start", OnRoundStart);
     HookEvent("teamplay_round_start", OnRoundStart_Pre);
 }
 
@@ -30,7 +31,7 @@ public Action CheckAbilityTimer(Handle timer)
     CheckAbility();
 }
 
-public Action _OnRoundStart(Handle event, const char[] name, bool dont)
+public Action OnRoundStart(Handle event, const char[] name, bool dont)
 {
   CheckAbility();
 }

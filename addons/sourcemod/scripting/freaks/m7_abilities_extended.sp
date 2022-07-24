@@ -1,10 +1,8 @@
-#define FF2_USING_AUTO_PLUGIN__OLD
-
 #include <sdkhooks>
 #include <tf2_stocks>
 #include <freak_fortress_2>
+#include <freak_fortress_2_subplugin>
 #include <ff2_ams2>
-#include <vsh2>
 
 #pragma semicolon 1
 #pragma newdecls required
@@ -101,7 +99,6 @@ bool PlayingRightNow;
 #define LIFELOSTHEMECHANGE "special_lifelose_theme"
 char LIFELOSETHEME[PLATFORM_MAX_PATH];
 int StopMusic_LifeLoseVersion;
-bool IsLifeLoseModelChanged[MAXPLAYERS+1];
 
 #define LASTPLAYERSTHEME "special_lastman_theme"
 char FEWPLAYERSTHEME[PLATFORM_MAX_PATH];
@@ -109,7 +106,7 @@ int StopMusic_FewPlayerVersion;
 
 #define TRANSFORMATION "lifelose_transformation"
 char lifelose_model[PLATFORM_MAX_PATH], lifelose_weapon_classname[32], lifelose_weapon_attributes[512];
-int lifelose_playerclass, lifelose_weapon_defindex;
+int lifelose_playerclass, lifelose_weapon_defindex; 
 
 #define REVIVE_BOSSES "rage_revive_bosses"
 bool ReviveBosses_TriggerAMS[MAXPLAYERS+1]; // global boolean to use with AMS
@@ -126,42 +123,19 @@ public void OnPluginStart2()
 	HookEvent("arena_round_start", event_round_start, EventHookMode_PostNoCopy);
 	HookEvent("arena_win_panel", event_round_end, EventHookMode_PostNoCopy);
 	HookEvent("player_death", event_player_death);
-
+	
 	AddNormalSoundHook(SoundHook);
 	jumpHUD = CreateHudSynchronizer();
 	LoadTranslations("ff2_newsalmon.charge");
 	PrecacheSound(ZEPH_SND,true);
 }
 
-//sorry but here are some vsh2 stuff to haldle vsh2's modeltimer
-public void OnLibraryAdded(const char[] name)
-{
-  if (StrEqual(name, "VSH2")) {
-    VSH2_Hook(OnBossModelTimer, Boss_OnModelTimer);
-  }
-}
-
-public void OnLibraryRemoved(const char[] name)
-{
-  if (StrEqual(name, "VSH2")) {
-    VSH2_Unhook(OnBossModelTimer, Boss_OnModelTimer);
-  }
-}
-
-Action Boss_OnModelTimer (const VSH2Player player)
-{
-	int client = player.index;
-	if (IsLifeLoseModelChanged[client])	//check if the boss has used the lifelose_model
-		return Plugin_Handled;
-	else
-		return Plugin_Continue;
-}
 
 public Action event_round_start(Event event, const char[] name, bool dontBroadcast)
 {
 	if(!FF2_IsFF2Enabled() || FF2_GetRoundState()!=1)
 		return;
-
+		
 	PrepareAbilities();
 }
 
@@ -174,35 +148,32 @@ public void PrepareAbilities()
 			//For Charge_New_Salmon
 			bEnableSuperDuperJump[client]=false;
 			SummonerIndex[client]=-1;
-
+			
 			//for Rage_Outline
 			EndOutline = INACTIVE;
 			Outline_TriggerAMS[client] = false;
-
+			
 			//for Rage_Buffs
 			Buffs_TriggerAMS[client] = false;
-
+			
 			//for Slay_Minions
 			Slay_TriggerAMS[client] = false;
-
+			
 			//for Special_Fire
 			EndFire = INACTIVE;
 			Fire_TriggerAMS[client] = false;
-
+			
 			// for Healing and Reviving abilities
 			ReviveBosses_TriggerAMS[client]=false;
 			HealBosses_TriggerAMS[client]=false;
-
-			//for lifelose_transformation
-			IsLifeLoseModelChanged[client] = false;
-
+			
 			VOMode[client]=VoiceMode_Normal;
-
+			
 			StopMusic_RageVersion = 0;
 			StopMusic_LifeLoseVersion = 0;
 			StopMusic_FewPlayerVersion = 0;
 			PlayingRightNow = false;
-
+			
 			int boss=FF2_GetBossIndex(client);
 			if(boss>=0)
 			{
@@ -248,15 +219,19 @@ public void FF2AMS_PreRoundStart(int client)
 	}
 	if(FF2_HasAbility(boss, this_plugin_name, AMSSTUN))
 	{
-		AMS_InitSubability(boss, client, this_plugin_name, AMSSTUN, AMSSTUNALIAS); // Important function to tell AMS that this subplugin supports it
+		Fire_TriggerAMS[client]=FF2AMS_IsAMSActivatedFor(client) && FF2AMS_PushToAMS(client, this_plugin_name, AMSSTUN, AMSSTUNALIAS);
 	}
 	if(FF2_HasAbility(boss, this_plugin_name, REVIVE_BOSSES))
 	{
-		ReviveBosses_TriggerAMS[client]=FF2AMS_IsAMSActivatedFor(client) && FF2AMS_PushToAMS(client, this_plugin_name, REVIVE_BOSSES, "REVI");
+		Fire_TriggerAMS[client]=FF2AMS_IsAMSActivatedFor(client) && FF2AMS_PushToAMS(client, this_plugin_name, REVIVE_BOSSES, "REVI");
 	}
 	if(FF2_HasAbility(boss, this_plugin_name, HEAL_BOSSES))
 	{
-		HealBosses_TriggerAMS[client]=FF2AMS_IsAMSActivatedFor(client) && FF2AMS_PushToAMS(client, this_plugin_name, HEAL_BOSSES, "HEAL");
+		Fire_TriggerAMS[client]=FF2AMS_IsAMSActivatedFor(client) && FF2AMS_PushToAMS(client, this_plugin_name, HEAL_BOSSES, "HEAL");
+	}
+	if(FF2_HasAbility(boss, this_plugin_name, FIRE))
+	{
+		Fire_TriggerAMS[client]=FF2AMS_IsAMSActivatedFor(client) && FF2AMS_PushToAMS(client, this_plugin_name, FIRE, FIREALIAS);
 	}
 }
 
@@ -268,21 +243,21 @@ public Action event_round_end(Event event, const char[] name, bool dontBroadcast
 		{
 			Outline_TriggerAMS[client] = false;
 			SDKUnhook(client, SDKHook_PreThink, Outline_Prethink);
-
+			
 			//for Rage_Buffs
 			Buffs_TriggerAMS[client] = false;
-
+			
 			//for Slay_Minions
 			Slay_TriggerAMS[client] = false;
-
+			
 			//for Special_Fire
 			Fire_TriggerAMS[client] = false;
 			SDKUnhook(client, SDKHook_PreThink, Fire_Prethink);
-
+			
 			// for Healing and Reviving abilities
 			ReviveBosses_TriggerAMS[client]=false;
 			HealBosses_TriggerAMS[client]=false;
-
+			
 			// Sound Stops
 			StopSound(client, SNDCHAN_AUTO, RAGETHEME);
 			StopSound(client, SNDCHAN_AUTO, NORMALTHEME);
@@ -293,13 +268,13 @@ public Action event_round_end(Event event, const char[] name, bool dontBroadcast
 	EndOutline = INACTIVE;
 	EndFire = INACTIVE;
 	PlayingRightNow = false;
-
+	
 	if(RageThemeTimer)
 	{
 		KillTimer(RageThemeTimer);
 		RageThemeTimer = INVALID_HANDLE;
 	}
-
+	
 	StopMusic_RageVersion = 0;
 	StopMusic_LifeLoseVersion = 0;
 	StopMusic_FewPlayerVersion = 0;
@@ -311,10 +286,10 @@ public Action event_player_death(Event event, const char[] name, bool dontBroadc
 	{
 		return Plugin_Continue;
 	}
-
+	
 	int attacker=GetClientOfUserId(event.GetInt("attacker"));
 	int client=GetClientOfUserId(event.GetInt("userid"));
-
+	
 	int boss=FF2_GetBossIndex(attacker); // Boss is an attacker
 	if(boss!=-1)
 	{
@@ -322,13 +297,13 @@ public Action event_player_death(Event event, const char[] name, bool dontBroadc
 		{
 			static char weaponName[MAX_WEAPON_NAME_LENGTH];
 			static char weaponArgs[MAX_WEAPON_ARG_LENGTH];
-
+			
 			int rand = GetRandomInt(0, MWS_WeaponCount[attacker] - 1);
 			int argOffset = (rand + 1) * 10;
-
+			
 			MWS_WeaponCount[attacker] = FF2_GetAbilityArgument(boss, this_plugin_name, MULTIWEAPONS, 1);
 			bool Allweaponsgone = FF2_GetAbilityArgument(boss, this_plugin_name, MULTIWEAPONS, 2) != 0;
-
+			
 			FF2_GetAbilityArgumentString(boss, this_plugin_name, MULTIWEAPONS, argOffset + 1, weaponName, MAX_WEAPON_NAME_LENGTH);
 			int weaponIdx = FF2_GetAbilityArgument(boss, this_plugin_name, MULTIWEAPONS, argOffset + 2);
 			FF2_GetAbilityArgumentString(boss, this_plugin_name, MULTIWEAPONS, argOffset + 3, weaponArgs, MAX_WEAPON_ARG_LENGTH);
@@ -336,7 +311,7 @@ public Action event_player_death(Event event, const char[] name, bool dontBroadc
 			int alpha = FF2_GetAbilityArgument(boss, this_plugin_name, MULTIWEAPONS, argOffset + 5);
 			int clip = FF2_GetAbilityArgument(boss, this_plugin_name, MULTIWEAPONS, argOffset + 7);
 			int ammo = FF2_GetAbilityArgument(boss, this_plugin_name, MULTIWEAPONS, argOffset + 8);
-
+			
 			MWS_WeaponCount[attacker] = min(MWS_WeaponCount[attacker], MWS_MAX_WEAPONS);
 			for (int i = 0; i < MWS_WeaponCount[attacker]; i++)
 			{
@@ -344,46 +319,46 @@ public Action event_player_death(Event event, const char[] name, bool dontBroadc
 				// a couple need to be stored as they're needed often
 				MWS_Slot[attacker][i] = FF2_GetAbilityArgument(boss, this_plugin_name, MULTIWEAPONS, 6 + offset);
 			}
-
+	
 			PrepareForWeaponSwitch(attacker, true);
-
+			
 			if(Allweaponsgone)
 				TF2_RemoveAllWeapons(attacker);
 			else
 				TF2_RemoveWeaponSlot(attacker, MWS_Slot[attacker][rand]);
-
+				
 			int weapon = SpawnWeapon(attacker, weaponName, weaponIdx, 101, 5, weaponArgs, weaponVisibility);
-
+	
 			// alpha transparency, best if the viewmodel doesn't hold it well
 			if (alpha != 255)
 			{
 				SetEntityRenderMode(weapon, RENDER_TRANSCOLOR);
 				SetEntityRenderColor(weapon, 255, 255, 255, alpha);
 			}
-
+		
 			// set clip and ammo last
 			int offset = GetEntProp(weapon, Prop_Send, "m_iPrimaryAmmoType", 1);
 			if (offset >= 0)
 			{
 				SetEntProp(attacker, Prop_Send, "m_iAmmo", ammo, 4, offset);
-
+				
 				// the weirdness below is to avoid setting clips for invalid weapons like huntsman, flamethrower, minigun, and sniper rifles.
 				// without the check below, these weapons would break.
 				// as for energy weapons, I frankly don't care. they're a mess. don't use this code for making energy weapons.
 				if (GetEntProp(weapon, Prop_Send, "m_iClip1") > 1 && GetEntProp(weapon, Prop_Send, "m_iClip1") < 128)
 					SetEntProp(weapon, Prop_Send, "m_iClip1", clip);
 			}
-
+	
 			// delay primary/secondary attack ever so slightly
 			SetEntPropFloat(weapon, Prop_Send, "m_flNextPrimaryAttack", GetGameTime() + 0.5);
 			SetEntPropFloat(weapon, Prop_Send, "m_flNextSecondaryAttack", GetGameTime() + 0.5);
 		}
-
+		
 		if(FF2_HasAbility(boss, this_plugin_name, LASTPLAYERSTHEME))
 		{
 			int Playerleft = FF2_GetAbilityArgument(boss, this_plugin_name, LASTPLAYERSTHEME, 1);
 			FF2_GetAbilityArgumentString(boss, this_plugin_name, LASTPLAYERSTHEME, 2, FEWPLAYERSTHEME, sizeof(FEWPLAYERSTHEME));
-
+			
 			int playercount;
 			for (int player = 1; player <= MaxClients; player++)
 			{
@@ -392,11 +367,11 @@ public Action event_player_death(Event event, const char[] name, bool dontBroadc
 					playercount++;
 				}
 			}
-
+		
 			if (playercount == Playerleft && !StopMusic_FewPlayerVersion) // play LMS over KS (event is before player dies, so there will be 1+boss+deader
 			{
 				FF2_StopMusic(0);
-
+		
 				if(FEWPLAYERSTHEME[0] != '\0')
 				{
 					PrecacheSound(FEWPLAYERSTHEME, true);
@@ -407,9 +382,9 @@ public Action event_player_death(Event event, const char[] name, bool dontBroadc
 					if(FF2_RandomSound("sound_fewplayersleft_theme", FEWPLAYERSTHEME, sizeof(FEWPLAYERSTHEME), boss))
 					{
 						EmitSoundToAll(FEWPLAYERSTHEME);
-					}
+					}		
 				}
-
+				
 				StopMusic_FewPlayerVersion++;
 			}
 		}
@@ -418,22 +393,22 @@ public Action event_player_death(Event event, const char[] name, bool dontBroadc
 			amountgainedrage = FF2_GetAbilityArgumentFloat(boss,this_plugin_name,RAGEONKILL,1,0.0);
 			float rage = FF2_GetBossCharge(boss,0);
 			float ragetogive;
-
+		
 			if(rage + amountgainedrage > 100.0) // We don't want RAGE to exceed more than 100%
 				ragetogive = 100.0;
 			else if (rage + amountgainedrage < 100.0)
 				ragetogive = rage+amountgainedrage;
-
+		
 			FF2_SetBossCharge(boss, 0, ragetogive);
 		}
-
+	
 		if(FF2_HasAbility(boss, this_plugin_name, HEALTHONKILL))
 		{
 			amountgainedhealth = FF2_GetAbilityArgumentFloat(boss,this_plugin_name,HEALTHONKILL,1,0.0);
-
+		
 			int health = FF2_GetBossHealth(boss);
 			int maxhealth = FF2_GetBossMaxHealth(boss)*FF2_GetBossLives(boss);
-
+		
 			if(amountgainedhealth <= 1)
 			{
 				health = RoundToCeil(health + (maxhealth * amountgainedhealth));
@@ -446,11 +421,11 @@ public Action event_player_death(Event event, const char[] name, bool dontBroadc
 			{
 				health = maxhealth;
 			}
-
+			
 			FF2_SetBossHealth(boss, health);
 		}
 	}
-
+	
 	boss=FF2_GetBossIndex(client);	// Boss is the victim
 	if(boss!=-1 && FF2_HasAbility(boss, this_plugin_name, SALMON_NEW) && !(event.GetInt("death_flags") & TF_DEATHFLAG_DEADRINGER))
 	{
@@ -463,30 +438,30 @@ public Action event_player_death(Event event, const char[] name, bool dontBroadc
 			}
 		}
 	}
-
+	
 	return Plugin_Continue;
 }
 
-public Action OnTakeDamage(int client, int &attacker, int &inflictor,
+public Action OnTakeDamage(int client, int &attacker, int &inflictor, 
 						float &damage, int &damagetype, int &weapon,
 						float damageForce[3], float damagePosition[3], int damagecustom)
-{
+{	
 	if (attacker<1 || attacker>MaxClients || !IsValidClient(attacker))
-		return Plugin_Continue;
+		return Plugin_Continue;	
 	int index = FF2_GetBossIndex(attacker);
 	if (index!=-1 && client!=attacker && FF2_HasAbility(index, this_plugin_name, MADMILKSTUN) && GetEntPropEnt(attacker, Prop_Send, "m_hActiveWeapon"))
 	{
 		bool Meleestun = FF2_GetAbilityArgument(index, this_plugin_name, MADMILKSTUN, 2, 0) != 0;
 		if (!Meleestun && GetPlayerWeaponSlot(attacker, TFWeaponSlot_Melee))
 		{
-
+			
 		}
 		else
 		{
 			float duration=FF2_GetAbilityArgumentFloat(index, this_plugin_name, MADMILKSTUN, 1, 3.0);
 			if (duration>0.25)
 				TF2_StunPlayer(client, duration, 0.0, TF_STUNFLAGS_NORMALBONK, attacker);
-		}
+		}	
 	}
 	return Plugin_Continue;
 }
@@ -495,7 +470,7 @@ public Action FF2_OnAbility2(int boss, const char[] plugin_name, const char[] ab
 {
 	if(!FF2_IsFF2Enabled() || FF2_GetRoundState()!=1)
 		return Plugin_Continue; // Because some FF2 forks still allow RAGE to be activated when the round is over....
-
+	
 	int client=GetClientOfUserId(FF2_GetBossUserId(boss));
 	int slot=FF2_GetAbilityArgument(boss, this_plugin_name, ability_name, 0);
 	if(!strcmp(ability_name,BUFFS))	// Defenses
@@ -504,7 +479,7 @@ public Action FF2_OnAbility2(int boss, const char[] plugin_name, const char[] ab
 		{
 			Buffs_TriggerAMS[client]=false;
 		}
-
+		
 		if(!Buffs_TriggerAMS[client])
 			RBF_Invoke(client, 0);
 	}
@@ -514,7 +489,7 @@ public Action FF2_OnAbility2(int boss, const char[] plugin_name, const char[] ab
 		{
 			Outline_TriggerAMS[client]=false;
 		}
-
+		
 		if(!Outline_TriggerAMS[client])
 			ROL_Invoke(client, 0);
 	}
@@ -524,7 +499,7 @@ public Action FF2_OnAbility2(int boss, const char[] plugin_name, const char[] ab
 		{
 			Fire_TriggerAMS[client]=false;
 		}
-
+		
 		if(!Fire_TriggerAMS[client])
 			SPF_Invoke(client, 0);
 	}
@@ -534,13 +509,13 @@ public Action FF2_OnAbility2(int boss, const char[] plugin_name, const char[] ab
 		{
 			Slay_TriggerAMS[client]=false;
 		}
-
+		
 		if(!Slay_TriggerAMS[client])
 			SMO_Invoke(client, 0);
 	}
 	else if (!strcmp(ability_name,SALMON_NEW))
 		Charge_New_Salmon(ability_name,boss,client,slot,action);
-
+		
 	// int Abilities
 	else if(!strcmp(ability_name,RAGETHEMECHANGE))
 	{
@@ -550,17 +525,17 @@ public Action FF2_OnAbility2(int boss, const char[] plugin_name, const char[] ab
 		if(!StopMusic_RageVersion)
 		{
 			FF2_StopMusic(0);
-
+		
 			StopMusic_RageVersion++;
 		}
-
+		
 		if(!PlayingRightNow)
 		{
 			for(int i=0;i<=MaxClients;i++)
 			{
 				StopSound(i, SNDCHAN_AUTO, NORMALTHEME);
 			}
-
+		
 			if(RAGETHEME[0] != '\0')
 			{
 				PrecacheSound(RAGETHEME, true);
@@ -573,9 +548,9 @@ public Action FF2_OnAbility2(int boss, const char[] plugin_name, const char[] ab
 					EmitSoundToAll(RAGETHEME);
 				}
 			}
-
+			
 			PlayingRightNow = true;
-
+		
 			RageThemeTimer = CreateTimer(duration, BackToNormal, client);
 		}
 	}
@@ -585,7 +560,7 @@ public Action FF2_OnAbility2(int boss, const char[] plugin_name, const char[] ab
 		{
 			ReviveBosses_TriggerAMS[client]=false;
 		}
-
+		
 		if(!ReviveBosses_TriggerAMS[client])
 			REVI_Invoke(client, 0);
 	}
@@ -595,7 +570,7 @@ public Action FF2_OnAbility2(int boss, const char[] plugin_name, const char[] ab
 		{
 			HealBosses_TriggerAMS[client]=false;
 		}
-
+		
 		if(!HealBosses_TriggerAMS[client])
 			HEAL_Invoke(client, 0);
 	}
@@ -633,12 +608,12 @@ public Action BackToNormal(Handle timer, any client)
 {
 	int boss=FF2_GetBossIndex(client);
 	FF2_GetAbilityArgumentString(boss, this_plugin_name, RAGETHEMECHANGE, 3, NORMALTHEME, sizeof(NORMALTHEME));
-
+	
 	for(int player=0;player<=MaxClients;player++)
 	{
 		StopSound(player, SNDCHAN_AUTO, RAGETHEME);
 	}
-
+	
 	if(NORMALTHEME[0] != '\0')
 	{
 		PrecacheSound(NORMALTHEME, true);
@@ -649,12 +624,12 @@ public Action BackToNormal(Handle timer, any client)
 		if(FF2_RandomSound("sound_normal_theme", NORMALTHEME, sizeof(NORMALTHEME), boss))
 		{
 			EmitSoundToAll(NORMALTHEME);
-		}
+		}		
 	}
-
+	
 	PlayingRightNow = false;
 	RageThemeTimer = INVALID_HANDLE;
-
+	
 	return Plugin_Continue;
 }
 
@@ -671,17 +646,17 @@ public void RBF_Invoke(int client, int index)
 {
 	int Boss=FF2_GetBossIndex(client);
 	Buffmode = FF2_GetAbilityArgument(Boss, this_plugin_name, BUFFS, 1); // Buff type
-
+	
 	if(Buffs_TriggerAMS[client])
 	{
 		char sound[PLATFORM_MAX_PATH];
 		if(FF2_RandomSound("sound_ams_buffs", sound, sizeof(sound), Boss))
 		{
 			EmitSoundToAll(sound, client);
-			EmitSoundToAll(sound, client);
+			EmitSoundToAll(sound, client);	
 		}
 	}
-
+	
 	if(Buffmode==-1) // Random Buff
 		Buffmode=GetRandomInt(0,6);
 	if(Buffmode == 0 || Buffmode == 1 || Buffmode == 4 || Buffmode == 5)
@@ -709,7 +684,7 @@ public void ROL_Invoke(int client, int index)
 	int Boss=FF2_GetBossIndex(client);
 	float bossPosition[3], targetPosition[3];
 	Outlinedistance=FF2_GetAbilityArgumentFloat(Boss, this_plugin_name, OUTLINE, 2, FF2_GetRageDist(Boss, this_plugin_name, OUTLINE));
-
+	
 	if(Outline_TriggerAMS[client])
 	{
 		char sound[PLATFORM_MAX_PATH];
@@ -719,9 +694,9 @@ public void ROL_Invoke(int client, int index)
 			EmitSoundToAll(sound, client);
 		}
 	}
-
+	
 	GetEntPropVector(client, Prop_Send, "m_vecOrigin", bossPosition);
-
+	
 	for(int i = 1; i <= MaxClients; i++ )
 	{
 		if(IsClientInGame(i) && IsPlayerAlive(i) && GetClientTeam(i)!= FF2_GetBossTeam())
@@ -769,7 +744,7 @@ public void SPF_Invoke(int client, int index)
 	int Boss=FF2_GetBossIndex(client);
 	float bossPosition[3], targetPosition[3];
 	FireRange=FF2_GetAbilityArgumentFloat(Boss, this_plugin_name, FIRE, 3, 555.0);
-
+	
 	if(Fire_TriggerAMS[client])
 	{
 		char sound[PLATFORM_MAX_PATH];
@@ -779,8 +754,8 @@ public void SPF_Invoke(int client, int index)
 			EmitSoundToAll(sound, client);
 		}
 	}
-
-	GetEntPropVector(client, Prop_Send, "m_vecOrigin", bossPosition);
+	
+	GetEntPropVector(client, Prop_Send, "m_vecOrigin", bossPosition);	
 	for(int target=1; target<=MaxClients; target++)
 	{
 		if(IsClientInGame(target) && IsPlayerAlive(target) && GetClientTeam(target)!=FF2_GetBossTeam())
@@ -832,7 +807,7 @@ public AMSResult SMO_CanInvoke(int client, int index)
 public void SMO_Invoke(int client, int index)
 {
 	int Boss=FF2_GetBossIndex(client);
-
+	
 	if(Slay_TriggerAMS[client])
 	{
 		char sound[PLATFORM_MAX_PATH];
@@ -842,7 +817,7 @@ public void SMO_Invoke(int client, int index)
 			EmitSoundToAll(sound, client);
 		}
 	}
-
+	
 	CreateTimer(FF2_GetAbilityArgumentFloat(Boss, this_plugin_name, SLAY, 1, 5.0), Timer_StopMinions);
 }
 
@@ -873,7 +848,7 @@ public void SAS_Invoke(int client, int index)
 	float Sentryduration=FF2_GetAbilityArgumentFloat(boss, this_plugin_name, AMSSTUN, 3, 7.0);
 	float Sentrydistance=FF2_GetAbilityArgumentFloat(boss, this_plugin_name, AMSSTUN, 4, FF2_GetRageDist(boss, this_plugin_name, AMSSTUN));
 	GetEntPropVector(client, Prop_Send, "m_vecOrigin", bossPosition);
-
+	
 	char sound[PLATFORM_MAX_PATH];
 	if(FF2_RandomSound("sound_ams_stun", sound, sizeof(sound), boss))
 	{
@@ -893,7 +868,7 @@ public void SAS_Invoke(int client, int index)
 			}
 		}
 	}
-
+	
 	int sentry;
 	while((sentry=FindEntityByClassname(sentry, "obj_sentrygun"))!=-1)
 	{
@@ -912,14 +887,14 @@ public AMSResult REVI_CanInvoke(int client, int index)
 {
 	if(!(GetEntityFlags(client) & FL_ONGROUND))
 		return AMS_Deny;
-
+		
 	return DeadCompanions(client) ? AMS_Accept : AMS_Deny;
 }
 
 public void REVI_Invoke(int client, int index)
 {
 	int boss=FF2_GetBossIndex(client);
-
+	
 	if(ReviveBosses_TriggerAMS[client])
 	{
 		char sound[PLATFORM_MAX_PATH];
@@ -929,7 +904,7 @@ public void REVI_Invoke(int client, int index)
 			EmitSoundToAll(sound, client);
 		}
 	}
-
+	
 	int quantity=FF2_GetAbilityArgument(boss, this_plugin_name, REVIVE_BOSSES, 1);
 	float revivedhealth=FF2_GetAbilityArgumentFloat(boss, this_plugin_name, REVIVE_BOSSES, 2);
 
@@ -940,14 +915,15 @@ public void REVI_Invoke(int client, int index)
 		int bossIndex=FF2_GetBossIndex(revivedboss);
 		if(revivedboss!=-1 && bossIndex!=-1)
 		{
-			FF2Player(revivedboss).SetPropAny("bIsMinion", true);
-			FF2Player(revivedboss).ForceTeamChange(VSH2Team_Boss);
-
+			FF2_SetFF2flags(revivedboss,FF2_GetFF2flags(revivedboss)|FF2FLAG_ALLOWSPAWNINBOSSTEAM);
+			ChangeClientTeam(revivedboss,FF2_GetBossTeam());
+			TF2_RespawnPlayer(revivedboss);
+			
 			int health;
 			int maxhealth = FF2_GetBossMaxHealth(bossIndex);
 
 			health = RoundToCeil(maxhealth * revivedhealth);
-
+				
 			FF2_SetBossHealth(bossIndex, health);
 		}
 	}
@@ -967,7 +943,7 @@ public void HEAL_Invoke(int client, int index)
 	float healing=FF2_GetAbilityArgumentFloat(boss, this_plugin_name, HEAL_BOSSES, 2);
 	bool selfheal=FF2_GetAbilityArgument(boss, this_plugin_name, HEAL_BOSSES, 3) != 0;
 	GetEntPropVector(client, Prop_Send, "m_vecOrigin", pos);
-
+	
 	if(HealBosses_TriggerAMS[client])
 	{
 		char sound[PLATFORM_MAX_PATH];
@@ -977,21 +953,21 @@ public void HEAL_Invoke(int client, int index)
 			EmitSoundToAll(sound, client);
 		}
 	}
-
+	
 	if(selfheal)
 	{
 		int Selfhealth = FF2_GetBossHealth(boss);
 		int Selfmaxhealth = FF2_GetBossMaxHealth(boss);
-
+				
 		Selfhealth = RoundToCeil(Selfhealth + (Selfmaxhealth * healing));
 		if(Selfhealth > Selfmaxhealth)
 		{
 			Selfhealth = Selfmaxhealth;
 		}
-
+				
 		FF2_SetBossHealth(boss, Selfhealth);
 	}
-
+	
 	for(int companion=1; companion<=MaxClients; companion++)
 	{
 		if(IsValidClient(companion) && GetClientTeam(companion) == FF2_GetBossTeam())
@@ -1003,13 +979,13 @@ public void HEAL_Invoke(int client, int index)
 			{
 				int health = FF2_GetBossHealth(companionIndex);
 				int maxhealth = FF2_GetBossMaxHealth(companionIndex);
-
+				
 				health = RoundToCeil(health + (maxhealth * healing));
 				if(health > maxhealth)
 				{
 					health = maxhealth;
 				}
-
+				
 				FF2_SetBossHealth(companionIndex, health);
 			}
 		}
@@ -1018,37 +994,36 @@ public void HEAL_Invoke(int client, int index)
 
 
 public Action FF2_OnLoseLife(int index, int& lives, int maxlives)
-{
+{		
 	int userid = FF2_GetBossUserId(index);
 	int client=GetClientOfUserId(userid);
 	if(index==-1 || !IsValidEdict(client) || !FF2_HasAbility(index, this_plugin_name, TRANSFORMATION))
 		return Plugin_Continue;
-
+	
 	FF2_GetAbilityArgumentString(index, this_plugin_name, TRANSFORMATION, 1, lifelose_model, sizeof(lifelose_model));
 	lifelose_playerclass = FF2_GetAbilityArgument(index, this_plugin_name, TRANSFORMATION, 2, 8);
 	FF2_GetAbilityArgumentString(index, this_plugin_name, TRANSFORMATION, 3, lifelose_weapon_classname, sizeof(lifelose_weapon_classname));
 	lifelose_weapon_defindex = FF2_GetAbilityArgument(index, this_plugin_name, TRANSFORMATION, 4, 4);
 	FF2_GetAbilityArgumentString(index, this_plugin_name, TRANSFORMATION, 5, lifelose_weapon_attributes, sizeof(lifelose_weapon_attributes));
-
+		
 	TF2_SetPlayerClass(client, view_as<TFClassType>(lifelose_playerclass));
-
+		
 	TF2_RemoveAllWeapons(client);
 	SpawnWeapon(client, lifelose_weapon_classname, lifelose_weapon_defindex, 101, 9, lifelose_weapon_attributes, true, false);
-
+		
 	PrecacheModel(lifelose_model);
 	SetVariantString(lifelose_model);
 	AcceptEntityInput(client, "SetCustomModel");
 	SetEntProp(client, Prop_Send, "m_bUseClassAnimations", 1);
-	IsLifeLoseModelChanged[client] = true;
-
+	
 	if(FF2_HasAbility(index, this_plugin_name, LIFELOSTHEMECHANGE))
 	{
 		FF2_GetAbilityArgumentString(index, this_plugin_name, LIFELOSTHEMECHANGE, 1, LIFELOSETHEME, sizeof(LIFELOSETHEME));
-
+		
 		FF2_StopMusic(0);
-
+	
 		StopMusic_LifeLoseVersion++;
-
+		
 		if(LIFELOSETHEME[0] != '\0')
 		{
 			PrecacheSound(LIFELOSETHEME, true);
@@ -1059,20 +1034,20 @@ public Action FF2_OnLoseLife(int index, int& lives, int maxlives)
 			if(FF2_RandomSound("sound_lifelose_theme", LIFELOSETHEME, sizeof(LIFELOSETHEME), index))
 			{
 				EmitSoundToAll(LIFELOSETHEME);
-			}
+			}		
 		}
 	}
-
+	
 	return Plugin_Continue;
 }
 
-public Action FF2_OnMusic(int boss, char[] path, float& time)
+public Action FF2_OnMusic(char[] path, float& time)
 {
 	if (StopMusic_RageVersion || StopMusic_LifeLoseVersion || StopMusic_FewPlayerVersion)
 	{
 		return Plugin_Stop;
 	}
-
+	
 	return Plugin_Continue;
 }
 
@@ -1082,7 +1057,7 @@ void Charge_New_Salmon(const char[] ability_name, int boss, int client, int slot
 	int weapon;
 	char hudstatus[256], hudstatus2[256], hudstatus3[256], hudstatus4[256], summonertext[256], summonedtext[256], HP[768];
 	float charge=FF2_GetBossCharge(boss,slot);
-
+	
 	Sound=FF2_GetAbilityArgument(boss,this_plugin_name,ability_name, 3);	//sound
 	Minions=FF2_GetAbilityArgument(boss,this_plugin_name,ability_name, 4);	// How many Minions?
 	UberchargeDuration=FF2_GetAbilityArgumentFloat(boss,this_plugin_name,ability_name, 5); // Spawn Protection
@@ -1102,15 +1077,15 @@ void Charge_New_Salmon(const char[] ability_name, int boss, int client, int slot
 	VO = FF2_GetAbilityArgument(boss, this_plugin_name, ability_name, 19);	 // Voice lines
 	PickupMode = FF2_GetAbilityArgument(boss, this_plugin_name, ability_name, 20); // PickupMode?
 	FF2_GetAbilityArgumentString(boss, this_plugin_name, ability_name, 21, Condition, sizeof(Condition)); // Conditions
-
+	
 	FF2_GetAbilityArgumentString(boss, this_plugin_name, ability_name, 22, hudstatus, sizeof(hudstatus));
-	FF2_GetAbilityArgumentString(boss, this_plugin_name, ability_name, 23, hudstatus2, sizeof(hudstatus2));
+	FF2_GetAbilityArgumentString(boss, this_plugin_name, ability_name, 23, hudstatus2, sizeof(hudstatus2));	
 	FF2_GetAbilityArgumentString(boss, this_plugin_name, ability_name, 24, hudstatus3, sizeof(hudstatus3));
 	FF2_GetAbilityArgumentString(boss, this_plugin_name, ability_name, 25, hudstatus4, sizeof(hudstatus4));
-
+	
 	FF2_GetAbilityArgumentString(boss, this_plugin_name, ability_name, 26, summonertext, sizeof(summonertext));
 	FF2_GetAbilityArgumentString(boss, this_plugin_name, ability_name, 27, summonedtext, sizeof(summonedtext));
-
+	
 	if(!hudstatus[0])
 	{
 		Format(hudstatus, sizeof(hudstatus), "%t", "summon_status");
@@ -1134,16 +1109,16 @@ void Charge_New_Salmon(const char[] ability_name, int boss, int client, int slot
 		{
 			SetHudTextParams(-1.0, slot==1 ? 0.88 : 0.93, 0.15, 255, 255, 255, 255);
 			ShowSyncHudText(client, jumpHUD, hudstatus2, -RoundFloat(charge));
-		}
+		}	
 		case 2:
 		{
 			SetHudTextParams(-1.0, slot==1 ? 0.88 : 0.93, 0.15, 255, bEnableSuperDuperJump[client] && slot == 1 ? 64 : 255, bEnableSuperDuperJump[client] && slot == 1 ? 64 : 255, 255);
 			if (bEnableSuperDuperJump[client] && slot == 1)
 			{
 				ShowSyncHudText(client, jumpHUD, hudstatus3);
-			}
+			}	
 			else
-			{
+			{	
 				ShowSyncHudText(client, jumpHUD, hudstatus, RoundFloat(charge));
 			}
 		}
@@ -1167,29 +1142,31 @@ void Charge_New_Salmon(const char[] ability_name, int boss, int client, int slot
 				if(charge<100)
 				{
 					CreateTimer(0.1, ResetCharge, boss*10000+slot);
-					return;
+					return;					
 				}
-
+				
 				int ii;
-
+				
 				if(Sound!=0)
 					EmitSoundToAll(ZEPH_SND);
-
+					
 				for (int i=0; i<Minions; i++)
 				{
 					ii = GetRandomDeadPlayer();
 					if(ii != -1)
 					{
-						FF2Player pasta = FF2Player(ii);
-						pasta.SetPropAny("bIsMinion", true);
-						pasta.ForceTeamChange(VSH2Team_Boss);
-						if(PickupMode==1 || PickupMode==3)
-							pasta.SetPropAny("bNoHealthPacks", true);
-						if(PickupMode==2 || PickupMode==3)
-							pasta.SetPropAny("bNoAmmoPacks", true);
-
+						FF2_SetFF2flags(ii,FF2_GetFF2flags(ii)|FF2FLAG_ALLOWSPAWNINBOSSTEAM);
+						if(PickupMode)
+						{
+							if(PickupMode==1 || PickupMode==3)
+								FF2_SetFF2flags(ii,FF2_GetFF2flags(ii)|FF2FLAG_ALLOW_HEALTH_PICKUPS); // HP Pickup
+							if(PickupMode==2 || PickupMode==3)
+								FF2_SetFF2flags(ii,FF2_GetFF2flags(ii)|FF2FLAG_ALLOW_AMMO_PICKUPS); // Ammo Pickup
+						}
+						ChangeClientTeam(ii,FF2_GetBossTeam());
+						TF2_RespawnPlayer(ii);
 						SummonerIndex[ii]=boss;
-
+					
 						switch(WeaponMode)
 						{
 							case 2: // No weapons
@@ -1197,12 +1174,12 @@ void Charge_New_Salmon(const char[] ability_name, int boss, int client, int slot
 							case 1: // User-Specified
 							{
 								TF2_RemoveAllWeapons(ii);
-
+					
 								if(Attributes[0]!='\0')
 									Format(Attributes, sizeof(Attributes), TF2_GetPlayerClass(ii)==TFClass_Scout ? "68 ; -2 ; 259 ; 1.0 ; %s" : "68 ; -1 ; 259 ; 1.0 ; %s", Attributes);
 								else
 									Attributes="68 ; -1 ; 259 ; 1.0";
-
+					
 								weapon=SpawnWeapon(ii, Classname, WeaponIndex, 101, 0, Attributes);
 								if(Ammo)
 									SetAmmo(ii, weapon, Ammo);
@@ -1245,7 +1222,7 @@ void Charge_New_Salmon(const char[] ability_name, int boss, int client, int slot
 								}
 							}
 						}
-
+			
 						if(Condition[0]!='\0')
 							SetCondition(ii, Condition);
 						if(Wearables)
@@ -1261,7 +1238,7 @@ void Charge_New_Salmon(const char[] ability_name, int boss, int client, int slot
 								if((owner=GetEntPropEnt(entity, Prop_Send, "m_hOwnerEntity"))<=MaxClients && owner>0 && GetClientTeam(owner)==FF2_GetBossTeam())
 									TF2_RemoveWearable(owner, entity);
 						}
-
+			
 						switch(ModelMode)
 						{
 							case 1:	// robots
@@ -1281,39 +1258,41 @@ void Charge_New_Salmon(const char[] ability_name, int boss, int client, int slot
 							case 2: // clone of boss
 							{
 								char taunt[PLATFORM_MAX_PATH];
-								int cls;
-								FF2Player cur_boss = FF2Player(boss, true);
-								TF2_SetPlayerClass(ii, cur_boss.GetInt("class", view_as<int>(cls)) ? view_as<TFClassType>(cls):TFClass_Scout, _, false);
-								cls = 0;
-								if(!cur_boss.GetInt("sound_block_vo", cls) || cls)
+								Handle curBossKV=FF2_GetSpecialKV(boss, false);
+								TF2_SetPlayerClass(ii, view_as<TFClassType>(KvGetNum(curBossKV, "class", 0)), _, false);
+								KvGetString(curBossKV, "model", SalmonModel, PLATFORM_MAX_PATH);	
+								if(KvGetNum(curBossKV, "sound_block_vo", 0))
+								{
 									VOMode[ii]=((!FF2_RandomSound("catch_phrase", taunt, sizeof(taunt), boss)) ? VoiceMode_None : VoiceMode_BossCatchPhrase);
+								}
 								else
+								{
 									VOMode[ii]=((!FF2_RandomSound("catch_phrase", taunt, sizeof(taunt), boss)) ? VoiceMode_Normal : VoiceMode_BossCatchPhrase);
-								cur_boss.GetString("model", SalmonModel, PLATFORM_MAX_PATH);
+								}
 								SetPlayerModel(ii, SalmonModel);
 							}
 							default:
 							{
 								if(UberchargeDuration)
 									TF2_AddCondition(ii, TFCond_Ubercharged, UberchargeDuration);
-
+					
 								TF2_SetPlayerClass(ii, view_as<TFClassType>(Class), _, false);
-
+					
 								SetPlayerModel(ii, SalmonModel);
-
+					
 								if(VO)
 								{
 									VOMode[ii]=view_as<VoiceMode>(VO);
 								}
 							}
-
+						
 						}
 						if(Notify!=0)
 						{
 							PrintHintText(client, "%s", summonertext);
 							PrintHintText(ii, "%s", summonedtext);
 						}
-
+						
 						int playing=0;
 						for(int player=1;player<=MaxClients;player++)
 						{
@@ -1324,7 +1303,7 @@ void Charge_New_Salmon(const char[] ability_name, int boss, int client, int slot
 								playing++;
 							}
 						}
-
+						
 						int health = RoundToCeil(ParseFormula(HP, playing));
 						if(health <= 0)
 						{
@@ -1339,7 +1318,7 @@ void Charge_New_Salmon(const char[] ability_name, int boss, int client, int slot
 			{
 				EmitSoundToAll(s, client, _, SNDLEVEL_TRAFFIC, SND_NOFLAGS, SNDVOL_NORMAL, 100, client, pos, NULL_VECTOR, true, 0.0);
 				EmitSoundToAll(s, client, _, SNDLEVEL_TRAFFIC, SND_NOFLAGS, SNDVOL_NORMAL, 100, client, pos, NULL_VECTOR, true, 0.0);
-
+					
 				for (int i=1; i<=MaxClients; i++)
 				{
 					if (IsClientInGame(i) && i!=client)
@@ -1362,12 +1341,12 @@ void Charge_New_Salmon(const char[] ability_name, int boss, int client, int slot
 }
 
 stock void SetPlayerModel(int client, char[] model)
-{
+{	
 	if(!IsModelPrecached(model))
 	{
 		PrecacheModel(model);
 	}
-
+	
 	SetVariantString(model);
 	AcceptEntityInput(client, "SetCustomModel");
 	SetEntProp(client, Prop_Send, "m_bUseClassAnimations", 1);
@@ -1705,7 +1684,7 @@ public Action SoundHook(int clients[MAXPLAYERS], int& numClients, char vl[PLATFO
 					pitch = GetRandomInt(95, 100);
 					EmitSoundToAll(vl, client, _, _, _, 0.25, pitch);
 				}
-
+				
 				if(channel==SNDCHAN_VOICE)
 				{
 					if (volume == 0.99997) return Plugin_Continue;
@@ -1748,7 +1727,7 @@ public Action SoundHook(int clients[MAXPLAYERS], int& numClients, char vl[PLATFO
 stock int SpawnWeapon(int client, char[] name, int index, int level, int quality, char[] attribute, int visible = 1, bool preserve = false)
 {
 	if(StrEqual(name,"saxxy", false)) // if "saxxy" is specified as the name, replace with appropiate name
-	{
+	{ 
 		switch(TF2_GetPlayerClass(client))
 		{
 			case TFClass_Scout: ReplaceString(name, 64, "saxxy", "tf_weapon_bat", false);
@@ -1762,7 +1741,7 @@ stock int SpawnWeapon(int client, char[] name, int index, int level, int quality
 			case TFClass_Spy: ReplaceString(name, 64, "saxxy", "tf_weapon_knife", false);
 		}
 	}
-
+	
 	if(StrEqual(name, "tf_weapon_shotgun", false)) // If using tf_weapon_shotgun for Soldier/Pyro/Heavy/Engineer
 	{
 		switch(TF2_GetPlayerClass(client))
@@ -1815,13 +1794,13 @@ stock int SpawnWeapon(int client, char[] name, int index, int level, int quality
 
 	int entity = TF2Items_GiveNamedItem(client, weapon);
 	delete weapon;
-
+	
 	if(!visible)
 	{
 		SetEntProp(entity, Prop_Send, "m_iWorldModelIndex", -1);
 		SetEntPropFloat(entity, Prop_Send, "m_flModelScale", 0.001);
 	}
-
+	
 	if (StrContains(name, "tf_wearable")==-1)
 	{
 		EquipPlayerWeapon(client, entity);
@@ -1830,7 +1809,7 @@ stock int SpawnWeapon(int client, char[] name, int index, int level, int quality
 	{
 		Wearable_EquipWearable(client, entity);
 	}
-
+	
 	return entity;
 }
 
@@ -1984,7 +1963,7 @@ stock void PrepareForWeaponSwitch(int clientIdx, bool isBoss)
 	int primary = GetPlayerWeaponSlot(clientIdx, TFWeaponSlot_Primary);
 	if (!IsValidEntity(primary) || primary != GetEntPropEnt(clientIdx, Prop_Send, "m_hActiveWeapon"))
 		return;
-
+	
 	bool shouldStun = false;
 	static char restoreClassname[MAX_ENTITY_CLASSNAME_LENGTH];
 	int itemDefinitionIndex = -1;
@@ -2006,7 +1985,7 @@ stock void PrepareForWeaponSwitch(int clientIdx, bool isBoss)
 		TF2_StunPlayer(clientIdx, 0.1, 0.0, TF_STUNFLAG_BONKSTUCK | TF_STUNFLAG_NOSOUNDOREFFECT);
 		TF2_RemoveCondition(clientIdx, TFCond_Dazed);
 	}
-
+	
 	if (itemDefinitionIndex != -1)
 	{
 		if (!strcmp(restoreClassname, "tf_weapon_compound_bow"))
