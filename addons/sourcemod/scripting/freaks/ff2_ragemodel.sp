@@ -1,9 +1,11 @@
+#define FF2_USING_AUTO_PLUGIN__OLD
 #pragma semicolon 1
 
 #include <sourcemod>
 #include <tf2_stocks>
 #include <freak_fortress_2>
-#include <freak_fortress_2_subplugin>
+//#include <freak_fortress_2_subplugin>
+#include <vsh2>
 
 public Plugin:myinfo = {
 	name = "Freak Fortress 2: Rage Model",
@@ -37,6 +39,27 @@ new g_BossThreshold5 = -1;
 
 new Handle:g_HealthModelTimer;
 
+public OnLibraryAdded(const String:name[])
+{
+	if (StrEqual(name, "VSH2")) {
+		VSH2_Hook(OnBossModelTimer, FF2_OnBossModelTimer);
+	}
+}
+
+public OnLibraryRemoved(const String:name[])
+{
+	if (StrEqual(name, "VSH2")) {
+		VSH2_Unhook(OnBossModelTimer, FF2_OnBossModelTimer);
+	}
+}
+
+Action:FF2_OnBossModelTimer(const VSH2Player:player)
+{
+	if (g_ModelChanged)
+		return Plugin_Handled;
+
+	return Plugin_Continue;
+}
 
 public OnPluginStart2()
 {
@@ -64,7 +87,7 @@ Rage_Model(const String:ability_name[], index)
 	FF2_GetAbilityArgumentString(index, this_plugin_name, ability_name, 3, g_NormalModel, PLATFORM_MAX_PATH);	//normal model
 
 	ChangeBossModel(g_RageModel, Boss);
-	
+
 	CreateTimer(float(duration), RestoreModel, Boss);
 }
 
@@ -100,7 +123,7 @@ public Action:RestoreModel(Handle:timer, any:client)
 		}
 		else
 		{
-			ChangeBossModel(g_NormalModel, client);        
+			ChangeBossModel(g_NormalModel, client);
 		}
 	}
 }
@@ -127,7 +150,7 @@ public Action:Event_RoundStart(Handle:event, const String:name[], bool:dontBroad
 	g_BossLife = 0;
 	g_BossMaxHealth = FF2_GetBossMaxHealth(0);
 	g_ModelChanged = false;
-	
+
 	if (FF2_IsFF2Enabled())
 	{
 		new Boss = GetClientOfUserId(FF2_GetBossUserId(0));
@@ -152,7 +175,7 @@ public Action:Event_RoundStart(Handle:event, const String:name[], bool:dontBroad
 			{
 				FF2_GetAbilityArgumentString(0, this_plugin_name, "life_model", 1, g_LifeModel[0], PLATFORM_MAX_PATH);
 				FF2_GetAbilityArgumentString(0, this_plugin_name, "life_model", 2, g_LifeModel[1], PLATFORM_MAX_PATH);
-				FF2_GetAbilityArgumentString(0, this_plugin_name, "life_model", 3, g_LifeModel[2], PLATFORM_MAX_PATH);    
+				FF2_GetAbilityArgumentString(0, this_plugin_name, "life_model", 3, g_LifeModel[2], PLATFORM_MAX_PATH);
 				FF2_GetAbilityArgumentString(0, this_plugin_name, "life_model", 4, g_LifeModel[3], PLATFORM_MAX_PATH);
 				FF2_GetAbilityArgumentString(0, this_plugin_name, "life_model", 6, g_LifeModel[5], PLATFORM_MAX_PATH);
 				FF2_GetAbilityArgumentString(0, this_plugin_name, "life_model", 7, g_LifeModel[6], PLATFORM_MAX_PATH);
@@ -174,7 +197,7 @@ public Action:Event_RoundEnd(Handle:event, const String:name[], bool:dontBroadca
 	}
 }
 
- 
+
 public Action:SetBossModel(Handle:timer, any:client)
 {
 	if (IsClientInGame(client) && IsPlayerAlive(client))

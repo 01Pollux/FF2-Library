@@ -31,11 +31,11 @@ Conflicts: special_dropprop
 
 */
 
+#define FF2_USING_AUTO_PLUGIN__OLD
 
 #include <sdkhooks>
 #include <tf2_stocks>
 #include <freak_fortress_2>
-#include <freak_fortress_2_subplugin>
 
 #pragma semicolon 1
 #pragma newdecls required
@@ -88,7 +88,8 @@ public void OnMapStart()
 	
 	for (int i = 1; i <= MaxClients; i++)
 	{
-		SDKHook(i, SDKHook_OnTakeDamagePost, OnTakeDamagePost);
+		if(IsClientInGame(i))
+			SDKHook(i, SDKHook_OnTakeDamagePost, OnTakeDamagePost);
 	}
 	
 }
@@ -208,9 +209,7 @@ public Action event_player_death(Event event, const char[] name, bool dontBroadc
 	
 	if (g_TransparencyTimers[client] != INVALID_HANDLE)
 	{
-		Handle timer = g_TransparencyTimers[client];
-		delete timer;
-		g_TransparencyTimers[client] = INVALID_HANDLE;
+		delete g_TransparencyTimers[client];
 		
 		if (IsValidEntity(client))
 		{
@@ -227,9 +226,7 @@ public Action event_round_end(Event event, const char[] name, bool dontBroadcast
 	{
 		if (IsClientConnected(i) && g_TransparencyTimers[i] != INVALID_HANDLE)
 		{
-			Handle timer = g_TransparencyTimers[i];
-			g_TransparencyTimers[i] = INVALID_HANDLE;
-			KillTimer(timer);
+			delete g_TransparencyTimers[i];
 			
 			if (IsValidEntity(i))
 			{
@@ -241,12 +238,7 @@ public Action event_round_end(Event event, const char[] name, bool dontBroadcast
 
 public void OnClientDisconnect(int client)
 {
-	if (g_TransparencyTimers[client] != INVALID_HANDLE)
-	{
-		Handle timer = g_TransparencyTimers[client];
-		g_TransparencyTimers[client] = INVALID_HANDLE;
-		KillTimer(timer);
-	}
+	delete g_TransparencyTimers[client];
 }
 
 void SetClientAlpha(int client, int alpha)
