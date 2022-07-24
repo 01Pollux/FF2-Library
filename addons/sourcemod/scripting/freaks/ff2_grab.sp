@@ -26,11 +26,12 @@
 	}   
 */
 #pragma semicolon 1
-#define FF2_USING_AUTO_PLUGIN__OLD
 
+#include <sourcemod>
 #include <sdktools>
 #include <sdkhooks>
 #include <freak_fortress_2>
+#include <freak_fortress_2_subplugin>
 #include <tf2>
 
 #pragma newdecls required
@@ -69,8 +70,8 @@ public void OnPluginStart2()
 	{
 		HookAbilities();
 	}
-	HookEvent("arena_round_start", _OnRoundStart);
-	HookEvent("teamplay_round_active", _OnRoundStart);
+	HookEvent("arena_round_start", OnRoundStart);
+	HookEvent("teamplay_round_active", OnRoundStart);
 	HookEvent("arena_win_panel", OnRoundEnd);
 	HookEvent("teamplay_round_win", OnRoundEnd);
 }
@@ -80,7 +81,7 @@ public void OnRoundEnd(Event event, const char[] name, bool dontBroadcast)
 	ClearValues();
 }
 
-public void _OnRoundStart(Event event, const char[] name, bool dontBroadcast)
+public void OnRoundStart(Event event, const char[] name, bool dontBroadcast)
 {
 	HookAbilities();
 }
@@ -110,7 +111,7 @@ public void FF2_OnAbility2(int boss, const char[] plugin_name, const char[] abil
 	int client=GetClientOfUserId(FF2_GetBossUserId(boss));
 	if(!IsValidClient(client))
 	{
-		FF2_LogError("Invalid client index %i", client);
+		Debug("Invalid client index %i", client);
 		return;
 	}
 	if(StrEqual(ability_name, PAIN, false))

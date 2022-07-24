@@ -34,7 +34,6 @@ public Plugin myinfo =
 
 public APLRes AskPluginLoad2(Handle Plugin, bool late, char[] err, int err_max)
 {
-	/*
 	Forwards[PreRoundStart] = new GlobalForward("FF2MenuRage_PreRoundStart", ET_Ignore, Param_Cell);
 	Forwards[OnProvokeRage] = new GlobalForward("FF2MenuRage_OnStartRage", ET_Hook, Param_Cell, Param_CellByRef, Param_CellByRef, Param_String, Param_String);
 	Forwards[OnTakeDamage] = new GlobalForward("FF2MenuRage_OnTakeDamageAlive", ET_Hook, Param_Cell, Param_Cell, Param_Cell);
@@ -49,9 +48,6 @@ public APLRes AskPluginLoad2(Handle Plugin, bool late, char[] err, int err_max)
 	CreateNative("FF2MenuRage_DoAbility", Native_DoAbiltiy);
 	
 	RegPluginLibrary("FF2MenuRage");
-	*/
-	Format(err, err_max, "Unfinished");
-	return APLRes_Failure;
 }
 
 public void OnPluginStart()

@@ -1,7 +1,8 @@
 #pragma semicolon 1
-#define FF2_USING_AUTO_PLUGIN__OLD
 
+#include <sourcemod>
 #include <freak_fortress_2>
+#include <freak_fortress_2_subplugin>
 #include <tf2_stocks>
 
 #pragma newdecls required
