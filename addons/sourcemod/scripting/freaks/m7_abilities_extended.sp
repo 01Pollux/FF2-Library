@@ -1981,6 +1981,9 @@ public Action Timer_EnableSentry(Handle timer, any sentryid)
 // the stun-unstun will prevent this from happening, but it may or may not stop the target's motion if on ground
 stock void PrepareForWeaponSwitch(int clientIdx, bool isBoss)
 {
+	if (clientIdx < 1 || !IsClientInGame(clientIdx))
+		return;
+
 	int primary = GetPlayerWeaponSlot(clientIdx, TFWeaponSlot_Primary);
 	if (!IsValidEntity(primary) || primary != GetEntPropEnt(clientIdx, Prop_Send, "m_hActiveWeapon"))
 		return;
