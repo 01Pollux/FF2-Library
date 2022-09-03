@@ -27,10 +27,10 @@
  * - Mecha the Slag for the replay stuff
  * - Inspired by Rise of the Epic Scout by Crash Maul
  */
- 
+
 bool DEBUG_FORCE_RAGE = false;
 #define ARG_LENGTH 256
- 
+
 bool PRINT_DEBUG_INFO = true;
 
 #define INVALID_ENTREF INVALID_ENT_REFERENCE
@@ -203,19 +203,19 @@ void PrintRageWarning()
 	PrintToServer("*  This is only for test servers. Disable this on your live server. *");
 	PrintToServer("*********************************************************************");
 }
- 
+
 #define CMD_FORCE_RAGE "rage"
 public void OnPluginStart2()
 {
 	// special initialize here, since this can't be done in RoundStart
 	cvarTimeScale = FindConVar("host_timescale");
 	cvarCheats = FindConVar("sv_cheats");
-	
+
 	HookEvent("arena_win_panel", Event_RoundEnd, EventHookMode_PostNoCopy);
 	HookEvent("arena_round_start", Event_RoundStart, EventHookMode_PostNoCopy);
 	for (int i = 0; i < MAX_PLAYERS_ARRAY; i++) // MAX_PLAYERS_ARRAY is correct here, this one time
 		NULL_BLACKLIST[i] = false;
-		
+
 	if (DEBUG_FORCE_RAGE)
 	{
 		PrintRageWarning();
@@ -235,14 +235,14 @@ public Action Event_RoundStart(Handle event, const char[] name, bool dontBroadca
 public void HookAbilities()
 {
 	RoundInProgress = true;
-	
+
 	// initialize variables
 	RRW_ActiveThisRound = false;
 	SNW_ActiveThisRound = false;
 	FP_ActiveThisRound = false;
 	FDR_ActiveThisRound = false;
 	DSD_ActiveThisRound = false;
-	
+
 	// initialize arrays
 	for (int clientIdx = 1; clientIdx < MAX_PLAYERS; clientIdx++)
 	{
@@ -262,10 +262,10 @@ public void HookAbilities()
 		if ((RRW_CanUse[clientIdx] = FF2_HasAbility(bossIdx, this_plugin_name, RRW_STRING)) == true)
 		{
 			RRW_ActiveThisRound = true;
-			
+
 			RRW_WeaponCount[clientIdx] = FF2_GetAbilityArgument(bossIdx, this_plugin_name, RRW_STRING, 2);
 			RRW_WeaponLifetime[clientIdx] = FF2_GetAbilityArgumentFloat(bossIdx, this_plugin_name, RRW_STRING, 3);
-			
+
 			RRW_WeaponCount[clientIdx] = min(RRW_WeaponCount[clientIdx], RRW_MAX_WEAPONS);
 			for (int i = 0; i < RRW_WeaponCount[clientIdx]; i++)
 			{
@@ -273,7 +273,7 @@ public void HookAbilities()
 				RRW_WeaponEntRef[clientIdx][i] = INVALID_ENTREF;
 				RRW_RemoveWeaponAt[clientIdx][i] = FAR_FUTURE;
 				RRW_WearableEntRef[clientIdx][i] = INVALID_ENTREF;
-				
+
 				// a couple need to be stored as they're needed often
 				RRW_Slot[clientIdx][i] = FF2_GetAbilityArgument(bossIdx, this_plugin_name, RRW_STRING, 6 + offset);
 				RRW_TempWearable[clientIdx][i] = FF2_GetAbilityArgument(bossIdx, this_plugin_name, RRW_STRING, 7 + offset);
@@ -292,7 +292,7 @@ public void HookAbilities()
 			// sound to precache
 			static char soundFile[MAX_SOUND_FILE_LENGTH];
 			ReadSound(bossIdx, SNW_STRING, 4, soundFile);
-			
+
 			SNW_StealDuration[clientIdx] = FF2_GetAbilityArgumentFloat(bossIdx, this_plugin_name, SNW_STRING, 2);
 			SNW_WeaponKeepDuration[clientIdx] = FF2_GetAbilityArgumentFloat(bossIdx, this_plugin_name, SNW_STRING, 3);
 			SNW_SlotSuppressionDuration[clientIdx] = FF2_GetAbilityArgumentFloat(bossIdx, this_plugin_name, SNW_STRING, 5);
@@ -301,7 +301,7 @@ public void HookAbilities()
 				int offset = (10 * (i + 1));
 				SNW_WeaponEntRef[clientIdx][i] = INVALID_ENTREF;
 				SNW_RemoveWeaponAt[clientIdx][i] = FAR_FUTURE;
-				
+
 				// honestly there's no reason to store this version. meh.
 				SNW_Slot[clientIdx][i] = FF2_GetAbilityArgument(bossIdx, this_plugin_name, SNW_STRING, 6 + offset);
 				ReadSound(bossIdx, SNW_STRING, 9 + offset, soundFile);
@@ -314,7 +314,7 @@ public void HookAbilities()
 			FP_ProtectedUntil[clientIdx] = FAR_FUTURE;
 			FP_DamageRemaining[clientIdx] = 0.0;
 			FP_WearableEntRef[clientIdx] = INVALID_ENTREF;
-			
+
 			FP_Duration[clientIdx] = FF2_GetAbilityArgumentFloat(bossIdx, this_plugin_name, FP_STRING, 2);
 			FP_Damage[clientIdx] = FF2_GetAbilityArgumentFloat(bossIdx, this_plugin_name, FP_STRING, 3);
 			ReadSound(bossIdx, FP_STRING, 4, FP_ShotBlockedSound[clientIdx]);
@@ -335,7 +335,7 @@ public void HookAbilities()
 			FDR_EndsAt[clientIdx] = FAR_FUTURE;
 			FDR_IsPending[clientIdx] = false;
 
-			
+
 			FDR_MaxDuration[clientIdx] = FF2_GetAbilityArgumentFloat(bossIdx, this_plugin_name, FDR_STRING, 2);
 			FDR_UncloakAttackWait[clientIdx] = FF2_GetAbilityArgumentFloat(bossIdx, this_plugin_name, FDR_STRING, 3);
 			PrecacheSound(FDR_SOUND);
@@ -371,7 +371,7 @@ public void HookAbilities()
 			ReadSound(bossIdx, ADT_STRING, 5, soundFile);
 		}
 	}
-	
+
 	if (SNW_ActiveThisRound)
 	{
 		for (int clientIdx = 1; clientIdx < MAX_PLAYERS; clientIdx++)
@@ -380,7 +380,7 @@ public void HookAbilities()
 				SDKHook(clientIdx, SDKHook_OnTakeDamage, SNW_OnTakeDamage);
 		}
 	}
-		
+
 	if (FP_ActiveThisRound)
 	{
 		for (int clientIdx = 1; clientIdx < MAX_PLAYERS; clientIdx++)
@@ -401,7 +401,7 @@ public void HookAbilities()
 			}
 		}
 	}
-		
+
 	if (DSD_ActiveThisRound)
 	{
 		for (int clientIdx = 1; clientIdx < MAX_PLAYERS; clientIdx++)
@@ -410,7 +410,7 @@ public void HookAbilities()
 				SDKHook(clientIdx, SDKHook_OnTakeDamage, DSD_OnTakeDamage);
 		}
 	}
-		
+
 	CreateTimer(0.3, Timer_PostRoundStartInits, _, TIMER_FLAG_NO_MAPCHANGE);
 }
 
@@ -419,7 +419,7 @@ public Action Timer_PostRoundStartInits(Handle timer)
 	// hale suicided
 	if (!RoundInProgress)
 		return Plugin_Handled;
-	
+
 	// finish initialization of stuff
 	for (int clientIdx = 1; clientIdx < MAX_PLAYERS; clientIdx++)
 	{
@@ -439,34 +439,34 @@ public void FF2AMS_PreRoundStart(int client)
 	if(!FF2AMS_IsAMSActivatedFor(client) || !LibraryExists("FF2AMS")) {
 		return;
 	}
-	
+
 	int boss = FF2_GetBossIndex(client);
-	
+
 	if(FF2_HasAbility(boss, this_plugin_name, RRW_STRING)) {
 		RRW_Trigger[client] = FF2_GetAbilityArgument(boss, this_plugin_name, RRW_STRING, 1, 1) != 0
-							&& FF2AMS_PushToAMS(client, this_plugin_name, RRW_STRING, "SNW") ? 1:0;
+							&& FF2AMS_PushToAMS(client, this_plugin_name, RRW_STRING, "RRW") ? 1:0;
 	}
-	
+
 	if(FF2_HasAbility(boss, this_plugin_name, SNW_STRING)) {
 		SNW_Trigger[client] = FF2_GetAbilityArgument(boss, this_plugin_name, SNW_STRING, 1, 1) != 0
 							&& FF2AMS_PushToAMS(client, this_plugin_name, SNW_STRING, "SNW") ? 1:0;
 	}
-	
+
 	if(FF2_HasAbility(boss, this_plugin_name, FP_STRING)) {
 		FP_Trigger[client] = FF2_GetAbilityArgument(boss, this_plugin_name, FP_STRING, 1, 1) != 0
 							&& FF2AMS_PushToAMS(client, this_plugin_name, FP_STRING, "FP") ? 1:0;
 	}
-	
+
 	if(FF2_HasAbility(boss, this_plugin_name, FDR_STRING)) {
 		FDR_Trigger[client] = FF2_GetAbilityArgument(boss, this_plugin_name, FDR_STRING, 1, 1) != 0
 							&& FF2AMS_PushToAMS(client, this_plugin_name, FDR_STRING, "FDR") ? 1:0;
 	}
-	
+
 	if(FF2_HasAbility(boss, this_plugin_name, DSD_STRING)) {
 		DSD_Trigger[client] = FF2_GetAbilityArgument(boss, this_plugin_name, DSD_STRING, 1, 1) != 0
 							&& FF2AMS_PushToAMS(client, this_plugin_name, DSD_STRING, "DSD") ? 1:0;
 	}
-	
+
 	if(FF2_HasAbility(boss, this_plugin_name, ADT_STRING)) {
 		ADT_Trigger[client] = FF2_GetAbilityArgument(boss, this_plugin_name, ADT_STRING, 1, 1) != 0
 							&& FF2AMS_PushToAMS(client, this_plugin_name, ADT_STRING, "ADT") ? 1:0;
@@ -476,7 +476,7 @@ public void FF2AMS_PreRoundStart(int client)
 public Action Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
 {
 	RoundInProgress = false;
-	
+
 	if (SNW_ActiveThisRound)
 	{
 		SNW_ActiveThisRound = false;
@@ -491,7 +491,7 @@ public Action Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
 	if (FP_ActiveThisRound)
 	{
 		FP_ActiveThisRound = false;
-	
+
 		for (int clientIdx = 1; clientIdx < MAX_PLAYERS; clientIdx++)
 		{
 			if (IsClientInGame(clientIdx) && FP_CanUse[clientIdx])
@@ -502,7 +502,7 @@ public Action Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
 	if (FDR_ActiveThisRound)
 	{
 		FDR_ActiveThisRound = false;
-		
+
 		for (int clientIdx = 1; clientIdx < MAX_PLAYERS; clientIdx++)
 		{
 			if (IsClientInGame(clientIdx) && FDR_CanUse[clientIdx])
@@ -512,11 +512,11 @@ public Action Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
 			}
 		}
 	}
-	
+
 	if (DSD_ActiveThisRound)
 	{
 		DSD_ActiveThisRound = false;
-	
+
 		for (int clientIdx = 1; clientIdx < MAX_PLAYERS; clientIdx++)
 		{
 			if (DSD_CanUse[clientIdx])
@@ -540,7 +540,7 @@ public Action FF2_OnAbility2(int bossIdx, const char[] plugin_name, const char[]
 		return Plugin_Continue;
 	else if (!RoundInProgress) // don't execute these rages with 0 players alive
 		return Plugin_Continue;
-		
+
 	else if (!strcmp(ability_name, RRW_STRING))
 	{
 		Rage_RandomWeapon(GetClientOfUserId(FF2_GetBossUserId(bossIdx)));
@@ -577,25 +577,25 @@ public Action CmdForceRage(int user, int argsInt)
 	// get actual args
 	char unparsedArgs[ARG_LENGTH];
 	GetCmdArgString(unparsedArgs, ARG_LENGTH);
-	
+
 	// gotta do this
 	PrintRageWarning();
-	
+
 	if (!strcmp("deadringer", unparsedArgs))
 	{
 		FDR_Invoke(GetClientOfUserId(FF2_GetBossUserId(0)), 0);
 		PrintToConsole(user, "Forcing dead ringer.");
-		
+
 		return Plugin_Handled;
 	}
 	else if (!strcmp("robme", unparsedArgs))
 	{
 		SNW_SetClassWeapon(GetClientOfUserId(FF2_GetBossUserId(0)), user, view_as<int>(TF2_GetPlayerClass(user)));
 		PrintToConsole(user, "Gonna get robbed.");
-		
+
 		return Plugin_Handled;
 	}
-	
+
 	PrintToServer("[sarysapub3] Rage not found: %s", unparsedArgs);
 	return Plugin_Continue;
 }
@@ -607,7 +607,7 @@ public void Rage_RandomWeapon(int clientIdx)
 {
 	if (RRW_Trigger[clientIdx] != RRW_TRIGGER_E)
 		return;
-		
+
 	RRW_Invoke(clientIdx, 0);
 }
 
@@ -624,7 +624,7 @@ public void RRW_Invoke(int clientIdx, int index)
 
 	int rand = GetRandomInt(0, RRW_WeaponCount[clientIdx] - 1);
 	int argOffset = (rand + 1) * 10;
-	
+
 	static char weaponName[MAX_WEAPON_NAME_LENGTH];
 	static char weaponArgs[MAX_WEAPON_ARG_LENGTH];
 	FF2_GetAbilityArgumentString(bossIdx, this_plugin_name, RRW_STRING, argOffset + 1, weaponName, MAX_WEAPON_NAME_LENGTH);
@@ -634,7 +634,7 @@ public void RRW_Invoke(int clientIdx, int index)
 	int alpha = FF2_GetAbilityArgument(bossIdx, this_plugin_name, RRW_STRING, argOffset + 5);
 	int clip = FF2_GetAbilityArgument(bossIdx, this_plugin_name, RRW_STRING, argOffset + 8);
 	int ammo = FF2_GetAbilityArgument(bossIdx, this_plugin_name, RRW_STRING, argOffset + 9);
-	
+
 	PrepareForWeaponSwitch(clientIdx, true);
 	TF2_RemoveWeaponSlot(clientIdx, RRW_Slot[clientIdx][rand]);
 	int weapon = SpawnWeapon(clientIdx, weaponName, weaponIdx, 101, 5, weaponArgs, weaponVisibility);
@@ -643,40 +643,40 @@ public void RRW_Invoke(int clientIdx, int index)
 		PrintCenterText(clientIdx, "Failed to spawn weapon %s / %d. Notify an admin!", weaponName, weaponIdx);
 		return;
 	}
-	
+
 	// alpha transparency, best if the viewmodel doesn't hold it well
 	if (alpha != 255)
 	{
 		SetEntityRenderMode(weapon, RENDER_TRANSCOLOR);
 		SetEntityRenderColor(weapon, 255, 255, 255, alpha);
 	}
-	
+
 	// do not make it the active weapon if Dynamic Parkour is active
 	if (!DP_IsLatched(clientIdx))
 		SetEntPropEnt(clientIdx, Prop_Send, "m_hActiveWeapon", weapon);
-		
+
 	// set clip and ammo last
 	int offset = GetEntProp(weapon, Prop_Send, "m_iPrimaryAmmoType", 1);
 	if (offset >= 0)
 	{
 		SetEntProp(clientIdx, Prop_Send, "m_iAmmo", ammo, 4, offset);
-			
+
 		// the weirdness below is to avoid setting clips for invalid weapons like huntsman, flamethrower, minigun, and sniper rifles.
 		// without the check below, these weapons would break.
 		// as for energy weapons, I frankly don't care. they're a mess. don't use this code for making energy weapons.
 		if (GetEntProp(weapon, Prop_Send, "m_iClip1") > 1 && GetEntProp(weapon, Prop_Send, "m_iClip1") < 128)
 			SetEntProp(weapon, Prop_Send, "m_iClip1", clip);
 	}
-	
+
 	// delay primary/secondary attack ever so slightly
 	SetEntPropFloat(weapon, Prop_Send, "m_flNextPrimaryAttack", GetGameTime() + 0.5);
 	SetEntPropFloat(weapon, Prop_Send, "m_flNextSecondaryAttack", GetGameTime() + 0.5);
-		
+
 	// store what needs to be stored
 	RRW_WeaponEntRef[clientIdx][rand] = EntIndexToEntRef(weapon);
 	RRW_RemoveWeaponAt[clientIdx][rand] = (RRW_WeaponLifetime[clientIdx] <= 0.0 ? FAR_FUTURE : (GetEngineTime() + RRW_WeaponLifetime[clientIdx]));
 	RRW_ToggleWearable(clientIdx, rand, false); // remove old wearable for this slot, if applicable
-	
+
 	// play the sound
 	static char soundFile[MAX_SOUND_FILE_LENGTH];
 	ReadSound(bossIdx, RRW_STRING, 4, soundFile);
@@ -688,7 +688,7 @@ public void RRW_ToggleWearable(int clientIdx, int weaponIdx, bool shouldAdd)
 {
 	if (RRW_TempWearable[clientIdx][weaponIdx] <= 0)
 		return;
-		
+
 	if (shouldAdd && RRW_WearableEntRef[clientIdx][weaponIdx] == INVALID_ENTREF)
 	{
 		int wearable = SpawnWeapon(clientIdx, "tf_wearable", RRW_TempWearable[clientIdx][weaponIdx], 101, 5, "", 1);
@@ -714,7 +714,7 @@ public void RRW_Tick(int clientIdx, float curTime)
 	{
 		if (RRW_WeaponEntRef[clientIdx][i] == INVALID_ENTREF)
 			continue;
-			
+
 		int weapon = EntRefToEntIndex(RRW_WeaponEntRef[clientIdx][i]);
 		if (!IsValidEntity(weapon))
 		{
@@ -722,7 +722,7 @@ public void RRW_Tick(int clientIdx, float curTime)
 			RRW_WeaponEntRef[clientIdx][i] = INVALID_ENTREF;
 			continue;
 		}
-		
+
 		// this only happens if someone else's weapon spawning code is crap
 		int weaponAtSlot = GetPlayerWeaponSlot(clientIdx, RRW_Slot[clientIdx][i]);
 		if (weapon != weaponAtSlot)
@@ -734,14 +734,14 @@ public void RRW_Tick(int clientIdx, float curTime)
 			RRW_WeaponEntRef[clientIdx][i] = INVALID_ENTREF;
 			continue;
 		}
-		
+
 		int activeWeapon = GetEntPropEnt(clientIdx, Prop_Send, "m_hActiveWeapon");
 		if (curTime >= RRW_RemoveWeaponAt[clientIdx][i])
 		{
 			if (activeWeapon == weapon) // set them to melee
 			{
 				PrepareForWeaponSwitch(clientIdx, true);
-		
+
 				SetEntPropEnt(clientIdx, Prop_Send, "m_hActiveWeapon", GetPlayerWeaponSlot(clientIdx, 2));
 			}
 			TF2_RemoveWeaponSlot(clientIdx, RRW_Slot[clientIdx][i]);
@@ -749,7 +749,7 @@ public void RRW_Tick(int clientIdx, float curTime)
 			RRW_WeaponEntRef[clientIdx][i] = INVALID_ENTREF;
 			continue;
 		}
-		
+
 		if (activeWeapon != weapon)
 			RRW_ToggleWearable(clientIdx, i, false);
 		else if (activeWeapon == weapon)
@@ -764,7 +764,7 @@ public void Rage_StealNextWeapon(int clientIdx)
 {
 	if (SNW_Trigger[clientIdx] != SNW_TRIGGER_E)
 		return;
-		
+
 	SNW_Invoke(clientIdx, 0);
 }
 
@@ -788,8 +788,8 @@ public void SNW_Invoke(int clientIdx, int index)
 		EmitSoundToAll(soundFile);
 }
 
-public Action SNW_OnTakeDamage(int victim, int &attacker, int &inflictor, 
-							float &damage, int &damagetype, int &weapon, 
+public Action SNW_OnTakeDamage(int victim, int &attacker, int &inflictor,
+							float &damage, int &damagetype, int &weapon,
 							float damageForce[3], float damagePosition[3], int damagecustom)
 {
 	if (!IsLivingPlayer(victim) || !IsLivingPlayer(attacker))
@@ -798,10 +798,10 @@ public Action SNW_OnTakeDamage(int victim, int &attacker, int &inflictor,
 		return Plugin_Continue; // tends to only pertain to self-damage
 	else if (PlayerIsInvincible(victim))
 		return Plugin_Continue;
-		
+
 	if (SNW_CanUse[attacker] && GetEngineTime() < SNW_StealingUntil[attacker] && (damagetype & DMG_CLUB) != 0)
 		SNW_SetClassWeapon(attacker, victim, view_as<int>(TF2_GetPlayerClass(victim)));
-		
+
 	return Plugin_Continue;
 }
 
@@ -814,7 +814,7 @@ public void SNW_SetClassWeapon(int clientIdx, int victim, int classIdx)
 	classIdx -= 1; // class 0 is "Unknown"
 	classIdx = max(0, classIdx);
 	int argOffset = (classIdx + 1) * 10;
-	
+
 	static char weaponName[MAX_WEAPON_NAME_LENGTH];
 	static char weaponArgs[MAX_WEAPON_ARG_LENGTH];
 	FF2_GetAbilityArgumentString(bossIdx, this_plugin_name, SNW_STRING, argOffset + 1, weaponName, MAX_WEAPON_NAME_LENGTH);
@@ -822,7 +822,7 @@ public void SNW_SetClassWeapon(int clientIdx, int victim, int classIdx)
 	FF2_GetAbilityArgumentString(bossIdx, this_plugin_name, SNW_STRING, argOffset + 3, weaponArgs, MAX_WEAPON_ARG_LENGTH);
 	int weaponVisibility = FF2_GetAbilityArgument(bossIdx, this_plugin_name, SNW_STRING, argOffset + 4);
 	int alpha = FF2_GetAbilityArgument(bossIdx, this_plugin_name, SNW_STRING, argOffset + 5);
-	
+
 	PrepareForWeaponSwitch(clientIdx, true);
 	TF2_RemoveWeaponSlot(clientIdx, SNW_Slot[clientIdx][classIdx]);
 	int weapon = SpawnWeapon(clientIdx, weaponName, weaponIdx, 101, 5, weaponArgs, weaponVisibility);
@@ -831,24 +831,24 @@ public void SNW_SetClassWeapon(int clientIdx, int victim, int classIdx)
 		PrintCenterText(clientIdx, "Failed to spawn weapon %s / %d. Notify an admin!", weaponName, weaponIdx);
 		return;
 	}
-	
+
 	// alpha transparency, best if the viewmodel doesn't hold it well
 	if (alpha != 255)
 	{
 		SetEntityRenderMode(weapon, RENDER_TRANSCOLOR);
 		SetEntityRenderColor(weapon, 255, 255, 255, alpha);
 	}
-	
+
 	// do not make it the active weapon if Dynamic Parkour is active
 	if (!DP_IsLatched(clientIdx))
 		SetEntPropEnt(clientIdx, Prop_Send, "m_hActiveWeapon", weapon);
-		
+
 	// play a sound on the victim
 	static char soundFile[MAX_SOUND_FILE_LENGTH];
 	ReadSound(bossIdx, SNW_STRING, 9 + argOffset, soundFile);
 	if (strlen(soundFile) > 3)
 		PseudoAmbientSound(victim, soundFile, 1, 1000.0);
-		
+
 	// ammo/clip last
 	int clip = FF2_GetAbilityArgument(bossIdx, this_plugin_name, SNW_STRING, argOffset + 7);
 	int ammo = FF2_GetAbilityArgument(bossIdx, this_plugin_name, SNW_STRING, argOffset + 8);
@@ -864,11 +864,11 @@ public void SNW_SetClassWeapon(int clientIdx, int victim, int classIdx)
 		if (GetEntProp(weapon, Prop_Send, "m_iClip1") > 1 && GetEntProp(weapon, Prop_Send, "m_iClip1") < 128)
 			SetEntProp(weapon, Prop_Send, "m_iClip1", clip);
 	}
-		
+
 	// delay primary/secondary attack ever so slightly
 	SetEntPropFloat(weapon, Prop_Send, "m_flNextPrimaryAttack", GetGameTime() + 0.5);
 	SetEntPropFloat(weapon, Prop_Send, "m_flNextSecondaryAttack", GetGameTime() + 0.5);
-		
+
 	// store what needs to be stored
 	SNW_StealingUntil[clientIdx] = 0.0;
 	SNW_WeaponEntRef[clientIdx][classIdx] = EntIndexToEntRef(weapon);
@@ -899,7 +899,7 @@ public void SNW_Tick(float curTime)
 						if (IsValidEntity(weapon))
 						{
 							PrepareForWeaponSwitch(clientIdx, false);
-		
+
 							SetEntPropEnt(clientIdx, Prop_Send, "m_hActiveWeapon", weapon);
 							break;
 						}
@@ -908,7 +908,7 @@ public void SNW_Tick(float curTime)
 			}
 			continue;
 		}
-			
+
 		// the rest only executes for the hale
 		for (int i = 0; i < SNW_NUM_WEAPONS; i++)
 		{
@@ -939,7 +939,7 @@ public void SNW_Tick(float curTime)
 				if (activeWeapon == weapon) // set them to melee
 				{
 					PrepareForWeaponSwitch(clientIdx, true);
-		
+
 					SetEntPropEnt(clientIdx, Prop_Send, "m_hActiveWeapon", GetPlayerWeaponSlot(clientIdx, 2));
 				}
 				TF2_RemoveWeaponSlot(clientIdx, SNW_Slot[clientIdx][i]);
@@ -957,7 +957,7 @@ public void Rage_FrontProtection(int clientIdx)
 {
 	if (FP_Trigger[clientIdx] != FP_TRIGGER_E)
 		return;
-		
+
 	FP_Invoke(clientIdx, 0);
 }
 
@@ -979,7 +979,7 @@ public void FP_EndRage(int clientIdx)
 	ReadSound(bossIdx, FP_STRING, 7, soundFile);
 	if (strlen(soundFile) > 3)
 		EmitSoundToAll(soundFile);
-		
+
 	if (FP_WearableIdx[clientIdx] > 0 && FP_WearableEntRef[clientIdx] != INVALID_ENTREF)
 	{
 		int wearable = EntRefToEntIndex(FP_WearableEntRef[clientIdx]);
@@ -993,7 +993,7 @@ public void FP_EndRage(int clientIdx)
 }
 
 // fun fact: OTDA is completely inaccurate if the target is ubered. (instead of "what if not ubered" damage, it's just the same arbitrary base damage that OTD uses)
-public Action FP_OnTakeDamageAlive(int victim, int &attacker, int &inflictor, 
+public Action FP_OnTakeDamageAlive(int victim, int &attacker, int &inflictor,
 								float &damage, int &damagetype, int &weapon,
 								float damageForce[3], float damagePosition[3], int damagecustom)
 {
@@ -1003,7 +1003,7 @@ public Action FP_OnTakeDamageAlive(int victim, int &attacker, int &inflictor,
 		return Plugin_Continue;
 	else if (TF2_IsPlayerInCondition(victim, TFCond_Ubercharged)) // it still goes through
 		return Plugin_Continue;
-		
+
 	// need position of either the inflictor or the attacker
 	int posEntity = IsValidEntity(inflictor) ? inflictor : attacker;
 	static float actualDamagePos[3];
@@ -1014,14 +1014,14 @@ public Action FP_OnTakeDamageAlive(int victim, int &attacker, int &inflictor,
 	GetEntPropVector(posEntity, Prop_Send, "m_vecOrigin", actualDamagePos);
 	GetVectorAnglesTwoPoints(victimPos, actualDamagePos, angle);
 	GetClientEyeAngles(victim, eyeAngles);
-	
+
 	// need the yaw offset from the player's POV, and set it up to be between (-180.0..180.0]
 	float yawOffset = fixAngle(angle[1]) - fixAngle(eyeAngles[1]);
 	if (yawOffset <= -180.0)
 		yawOffset += 360.0;
 	else if (yawOffset > 180.0)
 		yawOffset -= 360.0;
-		
+
 	// now it's a simple check
 	if (yawOffset >= FP_MinYawBlock[victim] && yawOffset <= FP_MaxYawBlock[victim])
 	{
@@ -1037,7 +1037,7 @@ public Action FP_OnTakeDamageAlive(int victim, int &attacker, int &inflictor,
 		damagetype |= DMG_PREVENT_PHYSICS_FORCE;
 		return Plugin_Changed;
 	}
-	
+
 	return Plugin_Continue;
 }
 
@@ -1052,11 +1052,11 @@ public void FP_Invoke(int clientIdx, int index)
 	ReadSound(bossIdx, FP_STRING, 8, soundFile);
 	if (strlen(soundFile) > 3)
 		EmitSoundToAll(soundFile);
-		
+
 	// set the settings
 	FP_ProtectedUntil[clientIdx] = FP_Duration[clientIdx] <= 0.0 ? FAR_FUTURE : (GetEngineTime() + FP_Duration[clientIdx]);
 	FP_DamageRemaining[clientIdx] = FP_Damage[clientIdx];
-	
+
 	// toggle bodygroups
 	if (FP_WearableIdx[clientIdx] > 0 && FP_WearableEntRef[clientIdx] == INVALID_ENTREF)
 	{
@@ -1064,7 +1064,7 @@ public void FP_Invoke(int clientIdx, int index)
 		if (IsValidEntity(wearable))
 		{
 			FP_WearableEntRef[clientIdx] = EntIndexToEntRef(wearable);
-			
+
 			// this might seem unnecessary since Valve supposedly hides it, but I was seeing self-wearables on my test server.
 			SetEntityRenderMode(wearable, RENDER_TRANSCOLOR);
 			SetEntityRenderColor(wearable, 255, 255, 255, 0);
@@ -1088,7 +1088,7 @@ public void Rage_FakeDeadRinger(int clientIdx)
 {
 	if (FDR_Trigger[clientIdx] != FDR_TRIGGER_E)
 		return;
-		
+
 	FDR_Invoke(clientIdx, 0);
 }
 
@@ -1118,7 +1118,7 @@ public void FDR_EndAbility(int clientIdx, int index)
 	bossPos[2] += 41.0;
 	EmitAmbientSound(FDR_SOUND, bossPos, clientIdx);
 	EmitAmbientSound(FDR_SOUND, bossPos, clientIdx);
-	
+
 	if (TF2_IsPlayerInCondition(clientIdx, TFCond_Cloaked))
 		TF2_RemoveCondition(clientIdx, TFCond_Cloaked);
 	TF2_AddCondition(clientIdx, TFCond_Cloaked, 0.05); // allow for fade out
@@ -1143,7 +1143,7 @@ public void FDR_DelayWeaponsBy(int clientIdx, float delayTime)
 	}
 }
 
-public Action FDR_OnTakeDamage(int victim, int &attacker, int &inflictor, 
+public Action FDR_OnTakeDamage(int victim, int &attacker, int &inflictor,
 								float &damage, int &damagetype, int &weapon,
 								float damageForce[3], float damagePosition[3], int damagecustom)
 {
@@ -1156,7 +1156,7 @@ public Action FDR_OnTakeDamage(int victim, int &attacker, int &inflictor,
 	}
 	else if (!FDR_IsPending[victim])
 		return Plugin_Continue;
-	
+
 	damage *= 0.1;
 	FDR_FeignDeath(victim);
 	return Plugin_Changed;
@@ -1194,7 +1194,7 @@ public void FDR_PreThink(int clientIdx)
 				TF2_AddCondition(clientIdx, TFCond_Stealthed, FDR_MaxDuration[clientIdx]);
 			if (GetEntPropFloat(clientIdx, Prop_Send, "m_flCloakMeter") != 100.0)
 				SetEntPropFloat(clientIdx, Prop_Send, "m_flCloakMeter", 100.0);
-				
+
 			if (FDR_FirstTick[clientIdx])
 			{
 				FDR_FirstTick[clientIdx] = false;
@@ -1232,20 +1232,20 @@ public Action FDR_OnStomp(int attacker, int victim, float& damageMultiplier, flo
 			return Plugin_Changed;
 		}
 	}
-	
+
 	return Plugin_Continue;
 }
 
 /**
  * Rage Dodge Specific Damage
  */
-public Action DSD_OnTakeDamage(int victim, int &attacker, int &inflictor, 
+public Action DSD_OnTakeDamage(int victim, int &attacker, int &inflictor,
 								float &damage, int &damagetype, int &weapon,
 								float damageForce[3], float damagePosition[3], int damagecustom)
 {
 	if (!IsLivingPlayer(victim) || !DSD_CanUse[victim])
 		return Plugin_Continue;
-		
+
 	if (DSD_ActiveUntil[victim] != FAR_FUTURE && GetEngineTime() < DSD_ActiveUntil[victim])
 	{
 		if ((DSD_DodgeBullets[victim] && (damagetype & (DMG_BULLET | DMG_BUCKSHOT) != 0)) ||
@@ -1258,7 +1258,7 @@ public Action DSD_OnTakeDamage(int victim, int &attacker, int &inflictor,
 			return Plugin_Changed;
 		}
 	}
-	
+
 	return Plugin_Continue;
 }
 
@@ -1266,7 +1266,7 @@ public void Rage_DodgeSpecificDamage(int clientIdx)
 {
 	if (DSD_Trigger[clientIdx] != DSD_TRIGGER_E)
 		return;
-		
+
 	DSD_Invoke(clientIdx, 0);
 }
 
@@ -1300,7 +1300,7 @@ public void DSD_Tick(int clientIdx, float curTime)
 {
 	if (DSD_ActiveUntil[clientIdx] == FAR_FUTURE)
 		return;
-		
+
 	if (curTime >= DSD_ActiveUntil[clientIdx])
 	{
 		DSD_ActiveUntil[clientIdx] = FAR_FUTURE;
@@ -1338,7 +1338,7 @@ public void Rage_AMSDynamicTeleport(int clientIdx)
 {
 	if (ADT_Trigger[clientIdx] != ADT_TRIGGER_E)
 		return;
-		
+
 	ADT_Invoke(clientIdx, 0);
 }
 
@@ -1346,7 +1346,7 @@ public AMSResult ADT_CanInvoke(int clientIdx, int index)
 {
 	if (ADT_MaxEnemiesToFunction[clientIdx] == 0)
 		return AMS_Accept;
-		
+
 	int numPlayers = 0;
 	int enemyTeam = GetClientTeam(clientIdx) == BossTeam ? MercTeam : BossTeam; // why the fuck are mercs allowed on BLU? seriously. WHY THE FUCK.
 	for (int enemy = 1; enemy < MAX_PLAYERS; enemy++)
@@ -1380,16 +1380,16 @@ public void OnGameFrame()
 {
 	if (!RoundInProgress)
 		return;
-		
+
 	float curTime = GetEngineTime();
-	
+
 	if (RRW_ActiveThisRound || FP_ActiveThisRound || DSD_ActiveThisRound)
 	{
 		for (int clientIdx = 1; clientIdx < MAX_PLAYERS; clientIdx++)
 		{
 			if (!IsLivingPlayer(clientIdx))
 				continue;
-		
+
 			if (RRW_CanUse[clientIdx])
 				RRW_Tick(clientIdx, curTime);
 			if (FP_CanUse[clientIdx])
@@ -1398,7 +1398,7 @@ public void OnGameFrame()
 				DSD_Tick(clientIdx, curTime);
 		}
 	}
-	
+
 	if (SNW_ActiveThisRound)
 		SNW_Tick(curTime);
 }
@@ -1422,7 +1422,7 @@ stock bool IsLivingPlayer(int clientIdx)
 {
 	if (clientIdx <= 0 || clientIdx >= MAX_PLAYERS)
 		return false;
-		
+
 	return IsClientInGame(clientIdx) && IsPlayerAlive(clientIdx);
 }
 
@@ -1434,7 +1434,7 @@ stock int PrepareForWeaponSwitch(int clientIdx, bool isBoss)
 	int primary = GetPlayerWeaponSlot(clientIdx, TFWeaponSlot_Primary);
 	if (!IsValidEntity(primary) || primary != GetEntPropEnt(clientIdx, Prop_Send, "m_hActiveWeapon"))
 		return;
-	
+
 	bool shouldStun = false;
 	static char restoreClassname[MAX_ENTITY_CLASSNAME_LENGTH];
 	int itemDefinitionIndex = -1;
@@ -1457,7 +1457,7 @@ stock int PrepareForWeaponSwitch(int clientIdx, bool isBoss)
 		TF2_StunPlayer(clientIdx, 0.1, 0.0, TF_STUNFLAG_BONKSTUCK | TF_STUNFLAG_NOSOUNDOREFFECT);
 		TF2_RemoveCondition(clientIdx, TFCond_Dazed);
 	}
-	
+
 	if (itemDefinitionIndex != -1)
 	{
 		if (!strcmp(restoreClassname, "tf_weapon_compound_bow"))
@@ -1526,14 +1526,14 @@ stock int SpawnWeapon(int client, char[] name, int index, int level, int quality
 
 	int entity = TF2Items_GiveNamedItem(client, weapon);
 	CloseHandle(weapon);
-	
+
 	// sarysa addition
 	if (!visible)
 	{
 		SetEntProp(entity, Prop_Send, "m_iWorldModelIndex", -1);
 		SetEntPropFloat(entity, Prop_Send, "m_flModelScale", 0.001);
 	}
-	
+
 	if (StrContains(name, "tf_wearable") != 0)
 		EquipPlayerWeapon(client, entity);
 	else
@@ -1570,7 +1570,7 @@ stock int Wearable_EquipWearable(int client, int wearable)
 stock bool IsPlayerInRange(int player, float position[3], float maxDistance)
 {
 	maxDistance *= maxDistance;
-	
+
 	static float playerPos[3];
 	GetEntPropVector(player, Prop_Data, "m_vecOrigin", playerPos);
 	return GetVectorDistance(position, playerPos, true) <= maxDistance;
@@ -1597,7 +1597,7 @@ stock float fixAngle(float angle)
 		angle = angle + 360.0;
 	while (angle > 180.0 && (sanity++) <= 10)
 		angle = angle - 360.0;
-		
+
 	return angle;
 }
 
@@ -1626,12 +1626,12 @@ stock void PseudoAmbientSound(int clientIdx, char[] soundPath, int count=1, floa
 			continue;
 		else if (skipDead && !IsLivingPlayer(listener))
 			continue;
-			
+
 		GetClientEyePosition(listener, listenerPos);
 		float distance = GetVectorDistance(emitterPos, listenerPos);
 		if (distance >= radius)
 			continue;
-		
+
 		float volume = (radius - distance) / radius;
 		if (volume <= 0.0)
 			continue;
@@ -1640,7 +1640,7 @@ stock void PseudoAmbientSound(int clientIdx, char[] soundPath, int count=1, floa
 			PrintToServer("[sarysapub3] How the hell is volume greater than 1.0?");
 			volume = 1.0;
 		}
-		
+
 		for (int i = 0; i < count; i++)
 			EmitSoundToClient(listener, soundPath, SOUND_FROM_PLAYER, SNDCHAN_AUTO, SNDLEVEL_NORMAL, SND_NOFLAGS, volume);
 	}
@@ -1663,7 +1663,7 @@ stock void DispatchKeyValueFormat(int entity, const char[] keyName, const char[]
 	VFormat(value, sizeof(value), format, 4);
 
 	DispatchKeyValue(entity, keyName, value);
-} 
+}
 
 stock bool PlayerIsInvincible(int clientIdx)
 {
@@ -1686,7 +1686,7 @@ void SwapModel(int clientIdx, const char[] model)
 	// standard important check here...
 	if (!IsClientInGame(clientIdx) || !IsPlayerAlive(clientIdx))
 		return;
-		
+
 	SetVariantString(model);
 	AcceptEntityInput(clientIdx, "SetCustomModel");
 	SetEntProp(clientIdx, Prop_Send, "m_bUseClassAnimations", 1);
@@ -1705,26 +1705,26 @@ int CreateRagdoll(int client, float flSelfDestruct=0.0, bool isIce=false)
 		float flVel[3];
 		GetClientAbsOrigin(client, flPos);
 		GetClientAbsAngles(client, flAng);
-		
+
 		TeleportEntity(iRag, flPos, flAng, flVel);
-		
+
 		SetEntProp(iRag, Prop_Send, "m_iPlayerIndex", client);
 		if (isIce)
 			SetEntProp(iRag, Prop_Send, "m_bIceRagdoll", 1);
 		SetEntProp(iRag, Prop_Send, "m_iTeam", GetClientTeam(client));
 		SetEntProp(iRag, Prop_Send, "m_iClass", view_as<int>(TF2_GetPlayerClass(client)));
 		SetEntProp(iRag, Prop_Send, "m_bOnGround", 1);
-		
+
 		SetEntityMoveType(iRag, MOVETYPE_NONE);
-		
+
 		DispatchSpawn(iRag);
 		ActivateEntity(iRag);
-		
+
 		if (flSelfDestruct > 0.0)
 			CreateTimer(flSelfDestruct, RemoveEntity2, EntIndexToEntRef(iRag), TIMER_FLAG_NO_MAPCHANGE);
-		
+
 		return iRag;
 	}
-	
+
 	return -1;
 }
