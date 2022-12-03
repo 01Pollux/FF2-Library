@@ -1606,7 +1606,7 @@ public void DSM_PreThink(int clientIdx)
 			{
 				if (DSM_UseDisguiseSpeed[clientIdx] || DSM_DisguiseCanIncreaseSpeed[clientIdx])
 				{
-					int disguiseTarget = GetEntProp(clientIdx, Prop_Send, "m_iDisguiseTargetIndex");
+					int disguiseTarget = GetEntPropEnt(clientIdx, Prop_Send, "m_hDisguiseTarget");
 					if (disguiseTarget > 0 && disguiseTarget < MAX_PLAYERS)
 					{
 						TFClassType disguiseClass = view_as<TFClassType>(GetEntProp(clientIdx, Prop_Send, "m_nDisguiseClass"));
