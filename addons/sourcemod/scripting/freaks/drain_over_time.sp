@@ -190,6 +190,8 @@ public Action Event_RoundStart(Handle event,const char[] name, bool dontBroadcas
 
 	// post-round start inits
 	CreateTimer(0.3, Timer_PostRoundStartInits, _, TIMER_FLAG_NO_MAPCHANGE);
+
+	return Plugin_Continue;
 }
 
 // if one or more bosses with DOT is found, save their parameters now and start the timer
@@ -304,6 +306,8 @@ public Action Event_RoundEnd(Handle event,const char[] name, bool dontBroadcast)
 		if (DOT_CanUse[clientIdx])
 			RemoveDOTOverlay(clientIdx);
 	}
+
+	return Plugin_Continue;
 }
 
 public void CancelDOTAbilityActivation(int clientIdx)
@@ -543,7 +547,9 @@ public Action OnPlayerRunCmd(int clientIdx, int& buttons, int& impulse,
 }
 
 // unused, but required
-public Action FF2_OnAbility2(int index, const char[] plugin_name, const char[] ability_name, int status) { }
+public Action FF2_OnAbility2(int index, const char[] plugin_name, const char[] ability_name, int status) {
+	return Plugin_Continue;
+}
 
 /**
  * READ THE LONG-WINDED COMMENTS BEFORE COPYING WHAT I DID.
@@ -635,6 +641,8 @@ public Action RemoveEntityDA(Handle timer, any entid)
 	int entity=EntRefToEntIndex(entid);
 	if(IsValidEdict(entity) && entity>MAX_PLAYERS)
 		RemoveEntity(entity);
+
+	return Plugin_Continue;
 }
 
 int AttachParticle(int entity, char[] particleType, float offset=0.0, bool attach=true)

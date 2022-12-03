@@ -230,6 +230,7 @@ public void OnPluginStart2()
 public Action Event_RoundStart(Handle event, const char[] name, bool dontBroadcast)
 {
 	HookAbilities();
+	return Plugin_Continue;
 }
 
 public void HookAbilities()
@@ -532,6 +533,8 @@ public Action Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
 			}
 		}
 	}
+
+	return Plugin_Continue;
 }
 
 public Action FF2_OnAbility2(int bossIdx, const char[] plugin_name, const char[] ability_name, int status)
@@ -1416,6 +1419,8 @@ public Action RemoveEntity2(Handle timer, any entid)
 	int entity = EntRefToEntIndex(entid);
 	if (IsValidEntity(entity))
 		RemoveEntity(entity);
+
+	return Plugin_Continue;
 }
 
 stock bool IsLivingPlayer(int clientIdx)
@@ -1480,6 +1485,8 @@ stock int PrepareForWeaponSwitch(int clientIdx, bool isBoss)
 			}
 		}
 	}
+
+	return 0;
 }
 
 #if !defined _FF2_Extras_included
@@ -1564,6 +1571,8 @@ stock int Wearable_EquipWearable(int client, int wearable)
 		}
 	}
 	SDKCall(S93SF_equipWearable, client, wearable);
+
+	return 0;
 }
 #endif
 
@@ -1602,11 +1611,12 @@ stock float fixAngle(float angle)
 }
 
 // really wish that the original GetVectorAngles() worked this way.
-stock float GetVectorAnglesTwoPoints(const float startPos[3], const float endPos[3], float angles[3])
+stock float GetVectorAnglesTwoPoints(const float startPos[3], const float endPos[3], float& angles[3])
 {
 	static float tmpVec[3];
 	MakeVectorFromPoints(startPos, endPos, tmpVec);
 	GetVectorAngles(tmpVec, angles);
+	return 0.0;
 }
 
 // this version ignores obstacles

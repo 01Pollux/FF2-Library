@@ -164,7 +164,7 @@ float SS_CoolDown[MAXPLAYERS];						// 1
 /* Rage_MLG */
 float MLGRageTime[MAXPLAYERS];
 
-bool MLG[MAXPLAYERS] = false;
+bool MLG[MAXPLAYERS] = { false, ... };
 
 //////////// FF2 inits
 public void OnPluginStart2()
@@ -517,6 +517,8 @@ public Action Event_Jarate(UserMsg msg_id, BfRead msg, const int[] players, int 
 			TF2_MakeBleed(iVictim, iClient, WankerPissDuration[iClient]);
 		}
 	}
+
+	return Plugin_Continue;
 }
 
 public Action OnTakeRocketDamage(int iClient, int &iAttacker, int &iInflictor, float &flDamage, int &iDmgType, int &iWeapon, float vDmgForce[3], float vDmgPos[3], int iDmgCstm)
@@ -1058,11 +1060,15 @@ void Charge_RocketSpawn(int iBoss, int iSlot, int iAction)	// Shamelessly stolen
 public Action Timer_ResetMoveType(Handle hTimer, any iClient) {
 	if (IsValidClient(iClient) && (GetEntityMoveType(iClient)==MOVETYPE_FLY || GetEntityMoveType(iClient)==MOVETYPE_NONE))
 		SetEntityMoveType(iClient, MOVETYPE_WALK);
+
+	return Plugin_Continue;
 }
 
 public Action Timer_NoPiss(Handle hTimer, any iClient) {
 	if (IsValidClient(iClient))
 		TF2_RemoveCondition(iClient, TFCond_Jarated);
+
+	return Plugin_Continue;
 }
 
 public Action RemoveEnt(Handle hTimer, any entid)
@@ -1073,6 +1079,7 @@ public Action RemoveEnt(Handle hTimer, any entid)
 		if (iEntity > MaxClients)
 			AcceptEntityInput(iEntity, "Kill");
 	}
+	return Plugin_Continue;
 }
 
 /*public Action Timer_SwitchToSlot(Handle hTimer, any iClient)
@@ -1088,6 +1095,7 @@ public Action UnHook(Handle hTimer, any Boss)
 		SDKUnhook(Boss, SDKHook_StartTouch, OnRockTouch);
 		SetEntProp(Boss, Prop_Send, "m_CollisionGroup", 5);
 	}
+	return Plugin_Continue;
 }
 
 public Action Timer_StartCD(Handle hTimer, Handle hData)
@@ -1096,6 +1104,7 @@ public Action Timer_StartCD(Handle hTimer, Handle hData)
 	int iSlot = ReadPackCell(hData);
 	float flSee = ReadPackFloat(hData);
 	FF2_SetBossCharge(iClient, iSlot, flSee);
+	return Plugin_Continue;
 }
 
 public Action Timer_HeffeTick(Handle hTimer, any iClient)
@@ -1171,6 +1180,8 @@ public Action Timer_Abduction(Handle hTimer, Handle pack)
 			hData.WriteCell(iIterations);
 		}
 	}
+
+	return Plugin_Continue;
 }
 
 public Action Timer_RemovePod(Handle hTimer, any ref)
@@ -1182,6 +1193,8 @@ public Action Timer_RemovePod(Handle hTimer, any ref)
 
 		CreateTimer(0.1, RemoveEnt, ref, TIMER_FLAG_NO_MAPCHANGE);
 	}
+
+	return Plugin_Continue;
 }
 
 public Action Timer_RemoveRagdoll(Handle hTimer, any userid)
@@ -1195,6 +1208,8 @@ public Action Timer_RemoveRagdoll(Handle hTimer, any userid)
 			AcceptEntityInput(iRagdoll, "Kill");
 		}
 	}
+
+	return Plugin_Continue;
 }
 
 public Action Timer_DissolveRagdoll(Handle hTimer, Handle pack)
@@ -1209,6 +1224,8 @@ public Action Timer_DissolveRagdoll(Handle hTimer, Handle pack)
 			Dissolve(iRagdoll, ReadPackCell(pack));
 		}
 	}
+
+	return Plugin_Continue;
 }
 
 
@@ -1256,7 +1273,7 @@ public Action OnRockTouch(int Boss, int iEntity)
 	if(GetClientTeam(Boss) != BossTeam)
 	{
 		SDKUnhook(Boss, SDKHook_Touch, OnRockTouch);
-		return;
+		return Plugin_Continue;
 	}
 
 	static float origin[3], angles[3], targetpos[3];
@@ -1275,6 +1292,8 @@ public Action OnRockTouch(int Boss, int iEntity)
 			FakeClientCommandEx(iEntity, "explode");
 		}
 	}
+
+	return Plugin_Continue;
 }
 
 public void MJ_Tick(int iClient, int iButtons, float flTime)
@@ -1998,7 +2017,7 @@ void PerformSmite(int iClient, int iTarget)
 	g_iSmiteNumber -= 1;
 }
 
-public void ProjectBeams(float flStart[3], float flDuration, const Color[4])
+public void ProjectBeams(float flStart[3], float flDuration, const int Color[4])
 {
 	float flEnd[3], flCeil[3];
 	flCeil = GetMapCeiling(flCeil);
@@ -2016,7 +2035,7 @@ public void ProjectBeams(float flStart[3], float flDuration, const Color[4])
 	TE_SendToAll();
 }
 
-float GetMapCeiling(float flPos[3])
+float[] GetMapCeiling(float flPos[3])
 {
 	Handle hTrace = TR_TraceRayEx(flPos, view_as<float>({-90.0, 0.0, 0.0}), MASK_SHOT, RayType_Infinite);
 
@@ -2227,7 +2246,7 @@ stock float fmin(float n1, float n2)
 	return n1 < n2 ? n1 : n2;
 }
 
-stock char GetJMButton()
+stock char[] GetJMButton()
 {
 	char strBuffer[18];
 	switch(JM_ButtonType)
@@ -2239,7 +2258,7 @@ stock char GetJMButton()
 	return strBuffer;
 }
 
-stock char GetMJTButton()
+stock char[] GetMJTButton()
 {
 	char strBuffer[18];
 	switch(MJT_ButtonType)

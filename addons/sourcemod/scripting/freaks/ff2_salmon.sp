@@ -203,8 +203,8 @@ int SummonerIndex[MAXPLAYERS+1];
 VoiceMode VOMode[MAXPLAYERS+1];
 MoveType mMoveType[MAXPLAYERS+1];
 int minionMaxHP[MAXPLAYERS+1];
-bool HookHealth[MAXPLAYERS+1]=false;
-int pParticleEnt[MAXPLAYERS+1]=-1;
+bool HookHealth[MAXPLAYERS+1];
+int pParticleEnt[MAXPLAYERS+1]={ -1, ... };
 
 // AMS
 bool AMSOnly[MAXPLAYERS+1];
@@ -984,6 +984,7 @@ public Action Timer_RemoveEntity(Handle timer, any entid)
 	if (IsValidEdict(entity) && entity > MaxClients)
 		AcceptEntityInput(entity, "Kill");
 	entid=-1;
+	return Plugin_Continue;
 }
 
 stock void SetPlayerModel(int client, char[] model)
@@ -1809,6 +1810,7 @@ public Action ResetCharge(Handle timer, any index)
 	int slot=index%10000;
 	index/=1000;
 	FF2_SetBossCharge(index, slot, 0.0);
+	return Plugin_Continue;
 }
 
 public Action Timer_Enable_Damage(Handle timer, any userid)
@@ -1856,6 +1858,7 @@ stock int SetWeaponClip(int client, int slot, int clip)
 	{
 		SetEntProp(weapon, Prop_Send, "m_iClip1", clip);
 	}
+	return 0;
 }
 
 stock int SetWeaponAmmo(int client, int slot, int ammo)
@@ -1867,6 +1870,7 @@ stock int SetWeaponAmmo(int client, int slot, int ammo)
 		int iAmmoTable = FindSendPropInfo("CTFPlayer", "m_iAmmo");
 		SetEntData(client, iAmmoTable+iOffset, ammo, 4, true);
 	}
+	return 0;
 }
 stock void SetCondition(int client, char[] cond)
 {

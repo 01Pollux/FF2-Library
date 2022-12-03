@@ -1325,6 +1325,8 @@ public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcas
 			}
 		}
 	}
+
+	return Plugin_Continue;
 }
 
 public Action Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
@@ -1539,6 +1541,8 @@ public Action Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
 			}
 		}
 	}
+
+	return Plugin_Continue;
 }
 
 public Action FF2_OnAbility2(int bossPlayer, const char[] plugin_name, const char[] ability_name, int status)
@@ -1639,6 +1643,8 @@ Action OnDOTAbilityTick(int clientIdx, int tickCount)
 
 	// suppress
 	if (tickCount) { }
+
+	return Plugin_Continue;
 }
 
 /**
@@ -4562,6 +4568,8 @@ public Action MA_MedicCommand(int clientIdx, const char[] command, int argc)
 			MA_PlayWeaponSwitchSound(clientIdx);
 		}
 	}
+
+	return Plugin_Continue;
 }
 
 // added 2015-02-10, cannot hook slot commands since they're hardcoded NOT to go to the server.
@@ -4608,6 +4616,8 @@ public Action MA_MegaCommand(int clientIdx, int args)
 			MA_PlayDepletedSound(clientIdx);
 		}
 	}
+
+	return Plugin_Continue;
 }
 
 public void MA_Tick(int clientIdx, int buttons, float curTime)
@@ -5125,7 +5135,7 @@ public void MG_EndImmunity(int clientIdx)
 
 	// the projectiles will seek out interesting entities. if none can be found, they'll fly out in random directions.
 	int validEntityCount = 0;
-	static validEntities[40];
+	static int validEntities[40];
 	static bool isTeleporter[40];
 	for (int i = 0; i < 40; i++)
 	{
@@ -6383,6 +6393,8 @@ public Action Timer_RemoveEntityTele(Handle timer, any entid)
 	int entity = EntRefToEntIndex(entid);
 	if (IsValidEntity(entity))
 		RemoveEntity(entity);
+
+	return Plugin_Continue;
 }
 
 public void RemoveEntityTele(int entid)
@@ -6531,11 +6543,13 @@ stock float fixAngle(float angle)
 }
 
 // really wish that the original GetVectorAngles() worked this way.
-stock float GetVectorAnglesTwoPoints(const float startPos[3], const float endPos[3], float angles[3])
+stock float GetVectorAnglesTwoPoints(const float startPos[3], const float endPos[3], float &angles[3])
 {
 	static float tmpVec[3];
 	MakeVectorFromPoints(endPos, startPos, tmpVec);
 	GetVectorAngles(tmpVec, angles);
+
+	return 0.0;
 }
 
 stock float fixDamageForFF2(float damage)
@@ -6767,7 +6781,7 @@ stock void ColorizePlayer(int client, const int iColor[4])
 	}
 }
 
-stock void SetEntityColor(int iEntity, const iColor[4])
+stock void SetEntityColor(int iEntity, const int iColor[4])
 {
 	SetEntityRenderMode(iEntity, RENDER_TRANSCOLOR);
 	SetEntityRenderColor(iEntity, iColor[0], iColor[1], iColor[2], iColor[3]);

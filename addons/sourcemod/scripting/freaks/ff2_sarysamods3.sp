@@ -363,6 +363,8 @@ public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcas
 	}
 	
 	RS_PlayerCount = float(playerCount);
+
+	return Plugin_Continue;
 }
 
 public Action Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
@@ -414,6 +416,8 @@ public Action Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
 	}
 	SH_ActiveThisRound = false;
 	RS_BlockingAllInput = false;
+
+	return Plugin_Continue;
 }
 
 /**
@@ -582,7 +586,7 @@ void OnDOTUserDeath(int clientIdx, int isInGame)
 Action OnDOTAbilityTick(int clientIdx, int tickCount)
 {
 	if (!PluginActiveThisRound)
-		return;
+		return Plugin_Continue;
 
 	// sentry hijack: if the sentry is dead, force the DOT rage to deactivate.
 	if (SH_CanUse[clientIdx])
@@ -600,6 +604,8 @@ Action OnDOTAbilityTick(int clientIdx, int tickCount)
 	
 	// suppress
 	if (tickCount) { }
+
+	return Plugin_Continue;
 }
 
 /**
@@ -2118,6 +2124,8 @@ public bool GetEmptyLocationHull(int client, float originalpos[3], float emptypo
 			}
 		}
 	}
+
+	return false;
 } 
 
 public bool DOTTeleport(int clientIdx)
@@ -2186,6 +2194,7 @@ public void RemoveSentryInvuln(int sentryEntityRef)
 public Action Timer_RemoveSentryInvuln(Handle timer, any sentryEntityRef)
 {
 	RemoveSentryInvuln(sentryEntityRef);
+	return Plugin_Continue;
 }
 
 public void SH_RestoreMeleeWeapon(int clientIdx)
@@ -2863,6 +2872,8 @@ public Action Timer_RemoveEntity(Handle timer, any entid)
 	int entity = EntRefToEntIndex(entid);
 	if (IsValidEntity(entity))
 		RemoveEntity(entity);
+
+	return Plugin_Continue;
 }
 
 stock int AttachParticle(int entity, const char[] particleType, float offset=0.0, bool attach=true)

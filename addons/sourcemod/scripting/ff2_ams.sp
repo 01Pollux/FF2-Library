@@ -48,6 +48,8 @@ public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max
 	CreateNative("FF2AMS_IsAMSActive", 			Native_IsAMSActive);
 
 	RegPluginLibrary("FF2AMS");
+
+	return APLRes_Success;
 }
 
 public void OnMapStart()

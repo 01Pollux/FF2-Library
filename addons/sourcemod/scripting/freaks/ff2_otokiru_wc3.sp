@@ -164,6 +164,7 @@ public Action FF2_OnAbility2(int boss, const char[] plugin_name, const char[] ab
 public Action event_round_start(Event event, const char[] name, bool dontBroadcast)
 {
 	HookAbilities();
+	return Plugin_Continue;
 }
 
 public void HookAbilities()
@@ -336,7 +337,9 @@ void Entangle_Activator(int client)
 public Action StopEntangle(Handle timer,any client)
 {
 	if(IsClientInGame(client) && IsPlayerAlive(client))
-		SetEntityMoveType(client, MOVETYPE_WALK);	
+		SetEntityMoveType(client, MOVETYPE_WALK);
+
+	return Plugin_Continue;
 }
 
 // Otokiri Teleport (should use dynamic_point_teleport tbh instead of this)
@@ -573,6 +576,8 @@ public Action checkTeleport(Handle h, any client){
 	else{
 		bTeleports[client]=(bTeleports[client]>0 ? bTeleports[client]-1 : 0);
 	}
+
+	return Plugin_Continue;
 }
 
 int absincarray[]={0,4,-4,8,-8,12,-12,18,-18,22,-22,25,-25};//,27,-27,30,-30,33,-33,40,-40}; //for human it needs to be smaller
@@ -616,6 +621,8 @@ public bool getEmptyLocationHull(int client,float originalpos[3]){
 			}
 		}
 	}
+
+	return false;
 } 
 
 public bool CanHitThis(int entityhit, int mask, any data)
@@ -641,6 +648,8 @@ public Action DeleteParticles(Handle timer, any particle)
             RemoveEdict(particle);
         }
     }
+
+	return Plugin_Continue;
 }
 
 void TeleportEffects(float pos[3])

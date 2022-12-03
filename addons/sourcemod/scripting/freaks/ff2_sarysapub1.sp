@@ -483,6 +483,8 @@ public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcas
 
 	// post-round start inits
 	CreateTimer(0.3, Timer_PostRoundStartInits, _, TIMER_FLAG_NO_MAPCHANGE);
+
+	return Plugin_Continue;
 }
 
 public Action Timer_PostRoundStartInits(Handle timer)
@@ -605,6 +607,8 @@ public Action Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
 		// object destroyed event
 //		UnhookEvent("object_destroyed", RW_ObjectDestroyed, EventHookMode_Pre);
 	}
+
+	return Plugin_Continue;
 }
 
 public Action FF2_OnAbility2(int bossPlayer, const char[] plugin_name, const char[] ability_name, int status)
@@ -2165,6 +2169,8 @@ public Action Timer_RemoveEntity(Handle timer, any entid)
 	{
 		RemoveEntity(entity);
 	}
+
+	return Plugin_Continue;
 }
 
 stock bool IsLivingPlayer(int clientIdx)
@@ -2399,6 +2405,7 @@ stock float GetRayAngles(float startPoint[3], float endPoint[3], float angle[3])
 	tmpVec[1] = endPoint[1] - startPoint[1];
 	tmpVec[2] = endPoint[2] - startPoint[2];
 	GetVectorAngles(tmpVec, angle);
+	return 0.0;
 }
 
 stock bool AngleWithinTolerance(float entityAngles[3], float targetAngles[3], float tolerance)

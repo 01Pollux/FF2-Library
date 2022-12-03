@@ -37,7 +37,7 @@ int aimmode;
 bool Delirium_TriggerAMS[MAXPLAYERS+1]; // global boolean to use with AMS
 int DeliriumDistance;
 float DeliriumDuration;
-static const float[] g_DrugAngles = {0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0, 27.0, 30.0, 33.0, 36.0, 39.0, 42.0, 39.0, 36.0, 33.0, 30.0, 27.0, 24.0, 21.0, 18.0, 15.0, 12.0, 9.0, 6.0, 3.0, 0.0, -3.0, -6.0, -9.0, -12.0, -15.0, -18.0, -21.0, -24.0, -27.0, -30.0, -33.0, -36.0, -39.0, -42.0, -39.0, -36.0, -33.0, -30.0, -27.0, -24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0 };
+static const float g_DrugAngles[] = {0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0, 27.0, 30.0, 33.0, 36.0, 39.0, 42.0, 39.0, 36.0, 33.0, 30.0, 27.0, 24.0, 21.0, 18.0, 15.0, 12.0, 9.0, 6.0, 3.0, 0.0, -3.0, -6.0, -9.0, -12.0, -15.0, -18.0, -21.0, -24.0, -27.0, -30.0, -33.0, -36.0, -39.0, -42.0, -39.0, -36.0, -33.0, -30.0, -27.0, -24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0 };
 Handle specialDrugTimers[ MAX_PLAYERS+1 ];
 
 //Hellfire
@@ -2018,4 +2018,4 @@ stock bool IsValidClient(int client, bool checkifAlive=false, bool replayCheck=f
 	return IsClientInGame(client);
 }
 
-#file "FF2 Subplugin: Phat Rages"
+//#file "FF2 Subplugin: Phat Rages"

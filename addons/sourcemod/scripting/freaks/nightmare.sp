@@ -28,7 +28,7 @@ enum Operators
 float EndNightmareAt;
 float EndFFAt;
 bool SniperFF=false; // We use this in case FF is set from RAGE, and not from round events like end-of-round friendly fire
-bool NoVoice[MAXPLAYERS+1]=false; // Block voices while RAGE is active
+bool NoVoice[MAXPLAYERS+1]={false, ...}; // Block voices while RAGE is active
 TFClassType LastClass[MAXPLAYERS+1];
 char NightmareModel[PLATFORM_MAX_PATH], NightmareClassname[64], NightmareAttributes[124];
 int NightmareIndex, NightmareClass;
@@ -463,7 +463,7 @@ bool LexOctal(LexState ls, const char[] formula)
 		}
 	}
 	return true;
-#pragma unused lit_flags		//REMOVEME
+//#pragma unused lit_flags		//REMOVEME HotoCocoaco: yeah sure what the hell is this for anyway.
 }
 
 bool LexHex(LexState ls, const char[] formula)

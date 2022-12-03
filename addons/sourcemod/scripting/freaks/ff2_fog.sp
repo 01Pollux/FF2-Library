@@ -7,12 +7,12 @@
 #pragma semicolon 1
 #pragma newdecls required
 
-#define VERSION_NUMBER "1.04"
+#define VERSION_NUMBER "1.10"
 
 public Plugin myinfo = {
 	name = "Freak Fortress 2: Fog Effects",
 	description = "フォグ効果",
-	author = "Koishi",
+	author = "Koishi, HotoCocoaco",
 	version = VERSION_NUMBER,
 };
 
@@ -20,7 +20,7 @@ public Plugin myinfo = {
 
 int envFog=-1;
 bool AMSOnly[MAXPLAYERS+1];
-float fogDuration[MAXPLAYERS+1]=INACTIVE;
+float fogDuration[MAXPLAYERS+1]={ INACTIVE, ... };
 
 public void OnPluginStart2()
 {

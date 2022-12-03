@@ -62,6 +62,7 @@ public void OnPluginStart2()
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
 {
 	OnHaleJump = CreateGlobalForward("VSH_OnDoJump", ET_Hook, Param_CellByRef);
+	return APLRes_Success;
 }
 
 public void Event_RoundStart(Event event, const char[] name, bool dontBroadcast)
@@ -681,6 +682,7 @@ stock int SetAmmo(int client, int slot, int ammo)
 		}
 		SetEntData(client, iAmmoTable+iOffset, ammo, 4, true);
 	}
+	return 0;
 }
 
 public Action Back2Karkan(Handle timer,any target)
@@ -703,12 +705,15 @@ public Action Back2Karkan(Handle timer,any target)
 			SetEntityFlags(target, FL_DUCKING);
 		}
 	}
+	return Plugin_Continue;
 }
 
 public Action RemoveDisguise(Handle timer, any boss)
 {
 	if(IsValidLivingClient(boss))
 		TF2_RemovePlayerDisguise(boss);
+	
+	return Plugin_Continue;
 }
 
 void Charge_Salmon(const char[] ability_name, int boss, int client, int slot, int action)
@@ -810,6 +815,7 @@ public Action Timer_ResetCharge(Handle timer, any boss)
 	int slot=boss%10000;
 	boss/=1000;
 	FF2_SetBossCharge(boss,slot,0.0);
+	return Plugin_Continue;
 }
 
 public Action FF2_OnTriggerHurt(int boss,int triggerhurt,float &damage)
@@ -888,6 +894,8 @@ public Action OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 			}
 		}
 	}
+
+	return Plugin_Continue;
 }
 
 stock bool ShowGameText(int client, const char[] icon="leaderboard_streak", int color=0, const char[] buffer, any ...)
@@ -931,6 +939,8 @@ public Action _ResolvebDucked(Handle timer, FF2Player player)
 		}
 		TF2_AddCondition(target, TFCond_Ubercharged, 1.0);
 	}
+
+	return Plugin_Continue;
 }
 
 public Action _SetUbercharge(Handle timer, DataPack pack)
@@ -942,4 +952,6 @@ public Action _SetUbercharge(Handle timer, DataPack pack)
 		float duration = pack.ReadFloat();
 		TF2_AddCondition(target, TFCond_Ubercharged, duration);
 	}
+
+	return Plugin_Continue;
 }

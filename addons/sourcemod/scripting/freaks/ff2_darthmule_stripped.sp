@@ -22,6 +22,8 @@ public Action FF2_OnAbility2(int index, const char[] plugin_name, const char[] a
 {
     if (!strcmp(ability_name, "rage_condition"))
         Rage_Condition(ability_name, index);
+
+    return Plugin_Continue;
 }
 
 void Rage_Condition(const char[] ability_name, int index)

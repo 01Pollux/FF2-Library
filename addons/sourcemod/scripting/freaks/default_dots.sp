@@ -347,7 +347,7 @@ OnDOTAbilityDeactivated(clientIdx)
 		{
 			PrintToChatAll("[%s] %d stopped using beam.", this_plugin_name, clientIdx);
 		}
-		new Float:ZeroVec[3] = 0.0;
+		new Float:ZeroVec[3];
 		TeleportEntity(clientIdx, NULL_VECTOR, NULL_VECTOR, ZeroVec);
 		if (strlen(BEAM_WindDownSound[clientIdx]) > 3)
 		{
@@ -512,15 +512,15 @@ GetBeamDrawStartPoint(clientIdx, Float:startPoint[3])
 	if (BEAM_AttachmentEntRef[clientIdx] == -1)
 	{
 		GetClientEyePosition(clientIdx, startPoint);
-		new Float:angles[3] = 0.0;
+		new Float:angles[3];
 		GetClientEyeAngles(clientIdx, angles);
 		startPoint[2] -= 25.0;
 		if (0.0 == BEAM_BeamOffset[clientIdx][0] && 0.0 == BEAM_BeamOffset[clientIdx][1] && 0.0 == BEAM_BeamOffset[clientIdx][2])
 		{
 			return;
 		}
-		new Float:tmp[3] = 0.0;
-		new Float:actualBeamOffset[3] = 0.0;
+		new Float:tmp[3];
+		new Float:actualBeamOffset[3];
 		tmp[0] = BEAM_BeamOffset[clientIdx][0];
 		tmp[1] = BEAM_BeamOffset[clientIdx][1];
 		tmp[2] = 0.0;
@@ -814,7 +814,7 @@ stock ParticleEffect(clientIdx, String:effectName[], Float:duration)
 	if (duration == 0.0)
 		duration = 0.1; // probably doesn't matter for this effect, I just don't feel comfortable passing 0 to a timer
 		
-	new particle = AttachParticle(clientIdx, effectName, 75.0);
+	new particle = AttachParticle(clientIdx, effectName, 75.0, true);
 	if (IsValidEntity(particle))
 		CreateTimer(duration, RemoveEntityDA, EntIndexToEntRef(particle));
 }
@@ -1140,4 +1140,4 @@ stock VectorRotate(Float:inPoint[3], Float:angles[3], Float:outPoint[3])
 	return;
 }
 
-#file "FF2 Subplugin: Default DOTs Restored"
+//#file "FF2 Subplugin: Default DOTs Restored"

@@ -8,7 +8,8 @@
 #define ToAMSUser(%0)		view_as<AMSUser>(%0)
 #define INVALID_AMS_INDEX	-1
 
-typedef AMSCallbackPrototype = function void(int client, StringMap infos);
+//Sourcemod 1.11: function casting no longer works. See https://github.com/alliedmodders/sourcepawn/issues/671
+//typedef AMSCallbackPrototype = function void(int client, StringMap infos);
 
 enum AMSResult {
 	AMS_INVALID = -1,
@@ -91,10 +92,10 @@ forward void FF2AMS_PreRoundStart(int client);
 native int FF2AMS_PushToAMSEx(
 				int client, 
 				const char[] plugin, const char[] ability, 
-				AMSCallbackPrototype can_invoke = INVALID_FUNCTION,
-				AMSCallbackPrototype do_invoke = INVALID_FUNCTION,
-				AMSCallbackPrototype do_overwrite = INVALID_FUNCTION,
-				AMSCallbackPrototype do_end = INVALID_FUNCTION
+				Function can_invoke = INVALID_FUNCTION,
+				Function do_invoke = INVALID_FUNCTION,
+				Function do_overwrite = INVALID_FUNCTION,
+				Function do_end = INVALID_FUNCTION
 			);
 
 /**
@@ -207,7 +208,7 @@ methodmap AMSUser < FF2Player
 	{
 		char func_str[48];
 		FormatEx(func_str, sizeof(func_str), "%s_CanInvoke");
-		Function can_invoke = GetFunctionByName(null, func_str);
+		Function can_invoke = (GetFunctionByName(null, func_str));
 		FormatEx(func_str, sizeof(func_str), "%s_Invoke");
 		Function do_invoke = GetFunctionByName(null, func_str);
 		FormatEx(func_str, sizeof(func_str), "%s_Overwrite");
@@ -218,10 +219,10 @@ methodmap AMSUser < FF2Player
 			this.index,
 			pl_name,
 			ab_name,
-			view_as<AMSCallbackPrototype>(can_invoke),
-			view_as<AMSCallbackPrototype>(do_invoke),
-			view_as<AMSCallbackPrototype>(do_overwrite),
-			view_as<AMSCallbackPrototype>(on_end)
+			can_invoke,
+			do_invoke,
+			do_overwrite,
+			on_end
 		);
 	}
 }
@@ -270,7 +271,7 @@ static stock Handle AMS_FindPlugin(char[] plugin_name)
  **/
 stock bool PluginExists(char[] plugin_name)
 {
-	return AMS_FindPlugin(plugin_name);
+	return AMS_FindPlugin(plugin_name) ? true : false;
 }
 
 /**

@@ -29,7 +29,7 @@ float NewSpeedCorruption[MAXPLAYERS+1];
 float NewSpeedDurationCorruption[MAXPLAYERS+1];
 bool Corruption_TriggerAMS[MAXPLAYERS+1]; // global boolean to use with AMS
 float CorruptionUnscramble=INACTIVE;
-bool Corruptionscramble[MAXPLAYERS+1]=false;
+bool Corruptionscramble[MAXPLAYERS+1]={false, ...};
 float g_DrugAngles[56] = {0.0, 3.0, 6.0, 9.0, 12.0, 15.0, 18.0, 21.0, 24.0, 27.0, 30.0, 33.0, 36.0, 39.0, 42.0, 39.0, 36.0, 33.0, 30.0, 27.0, 24.0, 21.0, 18.0, 15.0, 12.0, 9.0, 6.0, 3.0, 0.0, -3.0, -6.0, -9.0, -12.0, -15.0, -18.0, -21.0, -24.0, -27.0, -30.0, -33.0, -36.0, -39.0, -42.0, -39.0, -36.0, -33.0, -30.0, -27.0, -24.0, -21.0, -18.0, -15.0, -12.0, -9.0, -6.0, -3.0 };
 Handle specialDrugTimers[MAXPLAYERS+1];
 int fov_offset;
@@ -172,6 +172,7 @@ public void OnMapStart()
 public Action event_round_start(Handle event, const char[] name, bool dontBroadcast)
 {
 	PrepareAbilities();
+	return Plugin_Continue;
 }
 
 public void PrepareAbilities()
@@ -236,6 +237,7 @@ public Action event_round_end(Handle event, const char[] name, bool dontBroadcas
 		}
 	}
 	CreateTimer(0.1, EndCorruption);
+	return Plugin_Continue;
 }
 
 public Action event_player_death(Event event, const char[] name, bool dontBroadcast)
@@ -843,6 +845,8 @@ public Action Timer_RemoveEntity(Handle timer, any entid)
 	int entity=EntRefToEntIndex(entid);
 	if(IsValidEntity(entity) && entity>MaxClients)
 		RemoveEntity(entity);
+
+	return Plugin_Continue;
 }
 public Action Timer_EnableSentry(Handle timer, any sentryid)
 {

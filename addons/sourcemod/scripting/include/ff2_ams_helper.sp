@@ -502,6 +502,8 @@ public Action Timer_KillEntity(Handle timer, any EntRef)
 	int entity = EntRefToEntIndex(EntRef);
 	if (IsValidEntity(entity))
 		RemoveEntity(entity);
+
+	return Plugin_Continue;
 }
 
 static void GetRGBA(const char[] str, any color[4])

@@ -108,15 +108,17 @@ public void OnPluginStart2()
 public APLRes AskPluginLoad2(Handle myself, bool late, char[] error, int err_max)
 {
 	OnHaleJump = new GlobalForward("VSH_OnDoJump", ET_Hook, Param_CellByRef);
+	return APLRes_Success;
 }
 
 
 public Action _OnRoundStart(Handle event, const char[] name, bool dontBroadcast)
 {
 	if(!FF2_IsFF2Enabled() || FF2_GetRoundState()!=1)
-		return;
+		return Plugin_Continue;
 		
 	PrepareAbilities();
+	return Plugin_Continue;
 }
 
 public void PrepareAbilities()
@@ -207,6 +209,8 @@ public Action OnRoundEnd(Handle event, const char[] name, bool dontBroadcast)
 			SDKUnhook(client, SDKHook_PreThink, Fire_Prethink);
 		}
 	}
+
+	return Plugin_Continue;
 }
 
 public Action event_player_death(Event event, const char[] name, bool dontBroadcast)
@@ -910,6 +914,7 @@ public Action Timer_ResetCharge(Handle timer, any index)
 	int slot=index%10000;
 	index/=1000;
 	FF2_SetBossCharge(index,slot,0.0);
+	return Plugin_Continue;
 }
 
 public Action FF2_OnTriggerHurt(int index, int triggerhurt,float& damage)
@@ -1212,6 +1217,8 @@ public Action Timer_RemoveEntity(Handle timer, any entid)
 	int entity=EntRefToEntIndex(entid);
 	if(IsValidEntity(entity) && entity>MaxClients)
 		RemoveEntity(entity);
+
+	return Plugin_Continue;
 }
 public Action Timer_EnableSentry(Handle timer, any sentryid)
 {

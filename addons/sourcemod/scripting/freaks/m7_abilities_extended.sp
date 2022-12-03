@@ -160,9 +160,10 @@ Action Boss_OnModelTimer (const VSH2Player player)
 public Action event_round_start(Event event, const char[] name, bool dontBroadcast)
 {
 	if(!FF2_IsFF2Enabled() || FF2_GetRoundState()!=1)
-		return;
+		return Plugin_Continue;
 
 	PrepareAbilities();
+	return Plugin_Continue;
 }
 
 public void PrepareAbilities()
@@ -303,6 +304,8 @@ public Action event_round_end(Event event, const char[] name, bool dontBroadcast
 	StopMusic_RageVersion = 0;
 	StopMusic_LifeLoseVersion = 0;
 	StopMusic_FewPlayerVersion = 0;
+
+	return Plugin_Continue;
 }
 
 public Action event_player_death(Event event, const char[] name, bool dontBroadcast)
@@ -1378,6 +1381,7 @@ public Action ResetCharge(Handle timer, any index)
 	int slot=index%10000;
 	index/=1000;
 	FF2_SetBossCharge(index,slot,0.0);
+	return Plugin_Continue;
 }
 
 public Action FF2_OnTriggerHurt(int index, int triggerhurt, float& damage)
@@ -1522,7 +1526,7 @@ bool LexOctal(LexState ls, const char[] formula)
 		}
 	}
 	return true;
-#pragma unused lit_flags		//REMOVEME
+//#pragma unused lit_flags		//REMOVEME HotoCocoaco: Sure! You are ded!
 }
 
 bool LexHex(LexState ls, const char[] formula)
@@ -1965,6 +1969,8 @@ public Action Timer_RemoveEntity(Handle timer, any entid)
 	int entity=EntRefToEntIndex(entid);
 	if(IsValidEntity(entity))
 		RemoveEntity(entity);
+
+	return Plugin_Continue;
 }
 public Action Timer_EnableSentry(Handle timer, any sentryid)
 {
