@@ -170,5 +170,5 @@ public void ChargeSalmon_OnMinionInitialized(const VSH2Player minion, const VSH2
 
 void FF2_OnAbility2(const FF2Player player, const char[] abilityName, FF2CallType_t calltype)
 {
-
+	return;
 }
