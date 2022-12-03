@@ -98,5 +98,14 @@ public void SMITE_Invoke(int client, StringMap hMap)
 	// Rage code.
 	MyAMSPlayer player = MyAMSPlayer(client);
 
+	// how many victims.
+	int numofvictims = player.GetArgI(this_plugin_name, ABILITY_SMITE, "numbers", 3);
 
+	int[] victims = new int[numofvictims];
+	// Get random victim indies.
+	for(int i = 0; i < numofvictims; i++)
+	{
+		victims = GetRandomClient(true, VSH2Team_Red);
+
+	}
 }
