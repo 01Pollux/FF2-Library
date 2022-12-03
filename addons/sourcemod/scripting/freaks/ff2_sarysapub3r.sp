@@ -1438,7 +1438,7 @@ stock int PrepareForWeaponSwitch(int clientIdx, bool isBoss)
 {
 	int primary = GetPlayerWeaponSlot(clientIdx, TFWeaponSlot_Primary);
 	if (!IsValidEntity(primary) || primary != GetEntPropEnt(clientIdx, Prop_Send, "m_hActiveWeapon"))
-		return;
+		return 0;
 
 	bool shouldStun = false;
 	static char restoreClassname[MAX_ENTITY_CLASSNAME_LENGTH];
@@ -1557,7 +1557,7 @@ stock int Wearable_EquipWearable(int client, int wearable)
 		if(config==null)
 		{
 			LogError("[FF2] EquipWearable gamedata could not be found; make sure /gamedata/equipwearable.txt exists.");
-			return;
+			return 0;
 		}
 
 		StartPrepSDKCall(SDKCall_Player);
@@ -1567,7 +1567,7 @@ stock int Wearable_EquipWearable(int client, int wearable)
 		if((S93SF_equipWearable=EndPrepSDKCall())==null)
 		{
 			LogError("[FF2] Couldn't load SDK function (CTFPlayer::EquipWearable). SDK call failed.");
-			return;
+			return 0;
 		}
 	}
 	SDKCall(S93SF_equipWearable, client, wearable);
@@ -1611,7 +1611,7 @@ stock float fixAngle(float angle)
 }
 
 // really wish that the original GetVectorAngles() worked this way.
-stock float GetVectorAnglesTwoPoints(const float startPos[3], const float endPos[3], float& angles[3])
+stock float GetVectorAnglesTwoPoints(const float startPos[3], const float endPos[3], float angles[3])
 {
 	static float tmpVec[3];
 	MakeVectorFromPoints(startPos, endPos, tmpVec);

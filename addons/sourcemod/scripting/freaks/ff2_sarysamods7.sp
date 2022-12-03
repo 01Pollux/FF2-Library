@@ -1628,7 +1628,7 @@ void OnDOTUserDeath(int clientIdx, int isInGame)
 Action OnDOTAbilityTick(int clientIdx, int tickCount)
 {
 	if (!PluginActiveThisRound)
-		return;
+		return Plugin_Continue;
 
 	if (DE_CanUse[clientIdx])
 	{
@@ -4583,7 +4583,7 @@ public Action MA_MegaCommand(int clientIdx, int args)
 
 		// zero will need this
 		if (MA_Flags[clientIdx] & MA_FLAG_IGNORE_SLOT_COMMANDS)
-			return;
+			return Plugin_Continue;
 
 		int desiredWeapon = command[4] - '1';
 
@@ -6543,7 +6543,7 @@ stock float fixAngle(float angle)
 }
 
 // really wish that the original GetVectorAngles() worked this way.
-stock float GetVectorAnglesTwoPoints(const float startPos[3], const float endPos[3], float &angles[3])
+stock float GetVectorAnglesTwoPoints(const float startPos[3], const float endPos[3], float angles[3])
 {
 	static float tmpVec[3];
 	MakeVectorFromPoints(endPos, startPos, tmpVec);

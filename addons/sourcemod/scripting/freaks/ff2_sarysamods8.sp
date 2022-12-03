@@ -1659,7 +1659,7 @@ public Action Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
 public Action FF2_OnAbility2(int bossPlayer, const char[] plugin_name, const char[] ability_name, int status)
 {
 	if (!RoundInProgress) // don't execute these rages with 0 players alive
-		return;
+		return Plugin_Continue;
 	
 	if (!strcmp(ability_name, EM_STRING))
 		Rage_EarthquakeMachine(bossPlayer);
@@ -1790,18 +1790,18 @@ void OnDOTUserDeath(int clientIdx, int isInGame)
 Action OnDOTAbilityTick(int clientIdx, int tickCount)
 {	
 	if (!PluginActiveThisRound)
-		return;
+		return Plugin_Continue;
 
 	if (GH_CanUse[clientIdx])
 	{
 		ForceDOTAbilityDeactivation(clientIdx);
-		return;
+		return Plugin_Continue;
 	}
 	
 	if (DS_CanUse[clientIdx])
 	{
 		ForceDOTAbilityDeactivation(clientIdx);
-		return;
+		return Plugin_Continue;
 	}
 
 	if (HD_CanUse[clientIdx])
@@ -6174,7 +6174,7 @@ stock float fixAngle(float angle)
 }
 
 // really wish that the original GetVectorAngles() worked this way.
-stock float GetVectorAnglesTwoPoints(const float startPos[3], const float endPos[3], float& angles[3])
+stock float GetVectorAnglesTwoPoints(const float startPos[3], const float endPos[3], float angles[3])
 {
 	static float tmpVec[3];
 	MakeVectorFromPoints(endPos, startPos, tmpVec);
