@@ -12,14 +12,14 @@
 #define MAX_ABILITY_COUNT 16
 
 int ppIndex[MAX_EDICTS];
-bool ppCanUse[MAXPLAYERS+1]=false;
+bool ppCanUse[MAXPLAYERS+1];
 char ppName[MAXPLAYERS+1][MAX_ABILITY_COUNT][64];
 char ppEffect[MAXPLAYERS+1][MAX_ABILITY_COUNT][64];
 int	ppHolyness[MAXPLAYERS+1][MAX_ABILITY_COUNT];
 
-bool PP_bol[MAXPLAYERS+1] = false;
+bool PP_bol[MAXPLAYERS+1];
 char sParticles[MAXPLAYERS+1][64];
-int iHolyness[MAXPLAYERS+1] = 1;
+int iHolyness[MAXPLAYERS+1] = { 1, ... };
 
 public Plugin myinfo = {
 	name = "Freak Fortress 2: Projectile Particles",
@@ -82,6 +82,7 @@ public void HookAbilities()
 public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcast)
 {
 	HookAbilities();
+	return Plugin_Continue;
 }
 
 public void OnEntityCreated(int entity, const char[] classname)

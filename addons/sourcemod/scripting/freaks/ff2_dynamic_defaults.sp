@@ -719,6 +719,8 @@ public Action Event_RoundStart(Handle event, const char[] name, bool dontBroadca
 
 	for (int i = 0; i < MAX_SENTRIES; i++)
 		DSSG_EntRef[i] = INVALID_ENTREF;
+
+	return Plugin_Continue;
 }
 
 public Action Event_RoundEnd(Handle event, const char[] name, bool dontBroadcast)
@@ -792,6 +794,8 @@ public Action Event_RoundEnd(Handle event, const char[] name, bool dontBroadcast
 	}
 
 	DG_ActiveThisRound = false;
+
+	return Plugin_Continue;
 }
 
 public Action FF2_OnAbility2(int bossIdx, const char[] plugin_name, const char[] ability_name, int slot)
@@ -2954,6 +2958,8 @@ public Action Timer_RemoveEntity(Handle timer, any entid)
 		TeleportEntity(entity, OFF_THE_MAP, NULL_VECTOR, NULL_VECTOR); // send it away first in case it feels like dying dramatically
 		AcceptEntityInput(entity, "Kill");
 	}
+
+	return Plugin_Continue;
 }
 
 stock void PlaySoundLocal(int clientIdx, char[] soundPath, bool followPlayer = true, int repeat = 1)
@@ -3405,4 +3411,4 @@ public bool IsSpotSafe(int clientIdx, float playerPos[3], float sizeMultiplier)
 	return true;
 }
 
-#file "FF2 Subplugin: Dynamic Defaults"
+//#file "FF2 Subplugin: Dynamic Defaults"

@@ -13,11 +13,11 @@ int killing_mann_life;
 #define FAR_FUTURE 100000000.0
 
 #define SPECIALSPELLS "special_spells"
-bool HasSpellAbility[MAXPLAYERS+1]=false;
-bool SpellsAreOnCoolDown[MAXPLAYERS+1]=false;
+bool HasSpellAbility[MAXPLAYERS+1];
+bool SpellsAreOnCoolDown[MAXPLAYERS+1];
 float Spellragecost[MAXPLAYERS+1];
-float SpellHudNotificationAt[MAXPLAYERS+1]=FAR_FUTURE;
-float SpellsCooldownEndsIn[MAXPLAYERS+1]=FAR_FUTURE;
+float SpellHudNotificationAt[MAXPLAYERS+1]={ FAR_FUTURE, ... };
+float SpellsCooldownEndsIn[MAXPLAYERS+1]={ FAR_FUTURE, ... };
 int spellsnumber;
 char SpellsHUDText[MAXPLAYERS+1][10][256];
 
@@ -41,7 +41,7 @@ public void OnPluginStart2()
 public Action event_round_start(Event event, const char[] name, bool dontBroadcast)
 {
 	if(!FF2_IsFF2Enabled() || FF2_GetRoundState()!=1)
-		return;
+		return Plugin_Continue;
 
 	for(int clientIdx=1; clientIdx <= MaxClients; clientIdx++)
 	{
@@ -70,6 +70,8 @@ public Action event_round_start(Event event, const char[] name, bool dontBroadca
 			}
 		}
 	}
+
+	return Plugin_Continue;
 }
 
 public void OnGameFrame()
@@ -227,6 +229,8 @@ public Action event_round_end(Event event, const char[] name, bool dontBroadcast
 			StopSound(client, SNDCHAN_AUTO, LIFELOSE_THEME);
 		}
 	}
+
+	return Plugin_Continue;
 }
 
 public Action FF2_OnAbility2(int boss, const char[] plugin_name, const char[] ability_name, int status)

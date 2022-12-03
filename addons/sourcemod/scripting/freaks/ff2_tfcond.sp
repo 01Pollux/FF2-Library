@@ -92,9 +92,11 @@ public void FF2AMS_PreRoundStart(int bossClient)
 public Action Event_ArenaRoundStart(Event event, const char[] name, bool dontBroadcast)
 {
 	if(!FF2_IsFF2Enabled() || FF2_GetRoundState()!=1)
-		return;
+		return Plugin_Continue;
 		
 	PrepareAbilities();
+
+	return Plugin_Continue;
 }
 
 public void PrepareAbilities()
@@ -154,6 +156,8 @@ public Action Event_ArenaWinPanel(Event event, const char[] name, bool dontBroad
 			}
 		}
 	}
+
+	return Plugin_Continue;
 }
 
 public void PersistentTFCondition_PreThink(int client)
@@ -358,6 +362,7 @@ public Action ResetCharge(Handle timer, any boss)
 	int slot=boss%10000;
 	boss/=1000;
 	FF2_SetBossCharge(boss, slot, 0.0);
+	return Plugin_Continue;
 }
 
 stock bool IsBoss(int client)

@@ -49,6 +49,7 @@ public void OnPluginStart2()
 public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcast)
 {
 	PrepareAbilities();
+	return Plugin_Continue;
 }
 
 public void PrepareAbilities()
@@ -86,6 +87,7 @@ public Action Event_WinPanel(Event event, const char[] name, bool dontBroadcast)
 			NewSpeedDuration[client]=INACTIVE;
 		}
 	}
+	return Plugin_Continue;
 }
 
 public AMSResult MVS_CanInvoke(int client, int index)
@@ -229,6 +231,7 @@ public int SpeedTick(int client, float gameTime)
 		NewSpeedDuration[client]=INACTIVE;
 		SDKUnhook(client, SDKHook_PreThink, MoveSpeed_Prethink);
 	}
+	return 0;
 }
 
 stock bool IsValidClient(int client, bool isPlayerAlive=false)

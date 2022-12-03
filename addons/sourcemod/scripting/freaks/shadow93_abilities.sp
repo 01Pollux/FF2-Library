@@ -172,7 +172,7 @@ int SummonerIndex[MAXPLAYERS+1];
 VoiceMode VOMode[MAXPLAYERS+1];
 MoveType mMoveType[MAXPLAYERS+1];
 int minionMaxHP[MAXPLAYERS+1];
-bool HookHealth[MAXPLAYERS+1]=false;
+bool HookHealth[MAXPLAYERS+1];
 
 // Reanimators
 int decaytime;
@@ -330,6 +330,8 @@ public Action Event_Countdown(Event event, const char[] name, bool dontbroadcast
 		}
 		CreateTimer(0.3, CheckAbility, _,TIMER_FLAG_NO_MAPCHANGE);
 	}
+
+	return Plugin_Continue;
 }
 
 public Action Event_RoundEnd(Event event, const char[] name, bool dontbroadcast)
@@ -357,6 +359,8 @@ public Action Event_RoundEnd(Event event, const char[] name, bool dontbroadcast)
 		else if (event.GetInt("winning_team") == 0)
 			EmitSoundToAll(StalemateTrack);
 	}
+
+	return Plugin_Continue;
 }
 
 public Action Event_BroadcastAudio(Event event, const char[] name, bool dontbroadcast)
@@ -630,6 +634,8 @@ public Action CheckAbility(Handle timer) // Check for abilities
 			}
 		}
 	}
+
+	return Plugin_Continue;
 }
 
 public Action Timer_RandomModel(Handle timer, any client)
@@ -1749,7 +1755,7 @@ bool LexOctal(LexState ls, const char[] formula)
 		}
 	}
 	return true;
-#pragma unused lit_flags		//REMOVEME
+//#pragma unused lit_flags		//REMOVEME HotoCocoaco: YOU ARE DED!
 }
 
 bool LexHex(LexState ls, const char[] formula)
@@ -1955,7 +1961,7 @@ stock void ClassResponses(int client) // Simple Class responses
 
 stock void TeleToRandomPlayer(int client) // Teleport to random player
 {
-	float pos_2[3], target, teleportme, bool AlivePlayers;
+	float pos_2[3]; int target, teleportme; bool AlivePlayers;
 	for(int ii=1;ii<=MaxClients;ii++)
 	if(IsValidEdict(ii) && IsValidClient(ii, true) && GetClientTeam(ii)!=FF2_GetBossTeam())
 	{
@@ -2115,6 +2121,7 @@ public Action MoveMarker(Handle timer, any userid)
 	float position[3];
 	GetEntPropVector(client, Prop_Send, "m_vecOrigin", position);
 	TeleportEntity(reviveMarker[client], position, NULL_VECTOR, NULL_VECTOR);
+	return Plugin_Continue;
 }
 
 public Action TimeBeforeRemoval(Handle timer, any userid)
@@ -2136,6 +2143,7 @@ public Action ResetCharge(Handle timer, any index)
 	int slot=index%10000;
 	index/=1000;
 	FF2_SetBossCharge(index, slot, 0.0);
+	return Plugin_Continue;
 }
 
 public Action Timer_Enable_Damage(Handle timer, any userid)
@@ -2185,6 +2193,8 @@ stock int SetWeaponClip(int client, int slot, int clip)
 	{
 		SetEntProp(weapon, Prop_Send, "m_iClip1", clip);
 	}
+
+	return 0;
 }
 
 stock int SetWeaponAmmo(int client, int slot, int ammo)
@@ -2196,6 +2206,8 @@ stock int SetWeaponAmmo(int client, int slot, int ammo)
 		int iAmmoTable = FindSendPropInfo("CTFPlayer", "m_iAmmo");
 		SetEntData(client, iAmmoTable+iOffset, ammo, 4, true);
 	}
+
+	return 0;
 }
 stock void SetCondition(int client, char[] cond)
 {

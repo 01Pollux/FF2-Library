@@ -454,6 +454,8 @@ public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcas
 	}
 	
 	CreateTimer(0.3, Timer_PostRoundStartInits, _, TIMER_FLAG_NO_MAPCHANGE);
+
+	return Plugin_Continue;
 }
 
 public Action Timer_PostRoundStartInits(Handle timer)
@@ -490,6 +492,7 @@ public Action Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
 {
 	RoundInProgress = false;
 	Saxton_Cleanup();
+	return Plugin_Continue;
 }
 
 public void Saxton_Cleanup()
@@ -547,7 +550,7 @@ public void Saxton_Cleanup()
 public Action FF2_OnAbility2(int bossPlayer, const char[] plugin_name, const char[] ability_name, int status)
 {
 	if (!RoundInProgress) // don't execute these rages with 0 players alive
-		return;
+		return Plugin_Continue;
 		
 	if (!strcmp(ability_name, SB_STRING))
 	{
@@ -556,6 +559,8 @@ public Action FF2_OnAbility2(int bossPlayer, const char[] plugin_name, const cha
 		if (PRINT_DEBUG_INFO)
 			PrintToServer("[improved_saxton] Initiating Saxton Berserk");
 	}
+
+	return Plugin_Continue;
 }
 
 
@@ -1810,6 +1815,8 @@ public Action Timer_RemoveEntity(Handle timer, any entid)
 	int entity = EntRefToEntIndex(entid);
 	if (IsValidEntity(entity))
 		RemoveEntity(entity);
+
+	return Plugin_Continue;
 }
 
 stock bool IsLivingPlayer(int clientIdx)
@@ -2045,6 +2052,7 @@ stock float GetVectorAnglesTwoPoints(const float startPos[3], const float endPos
 	tmpVec[1] = endPos[1] - startPos[1];
 	tmpVec[2] = endPos[2] - startPos[2];
 	GetVectorAngles(tmpVec, angles);
+	return 0.0;
 }
 
 stock float GetVelocityFromPointsAndInterval(float pointA[3], float pointB[3], float deltaTime)

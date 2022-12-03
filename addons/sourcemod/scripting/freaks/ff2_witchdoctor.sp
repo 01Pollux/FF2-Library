@@ -1298,6 +1298,8 @@ public Action Timer_SwitchToSlot(Handle hTimer, any iClient)
 {
 	if(IsValidClient(iClient, true))
 		SwitchtoSlot(iClient, 2);
+
+	return Plugin_Continue;
 }
 
 stock int SpawnWeapon(int iClient, char[] strClassname, int iIndex, int iLevel, int iQuality, const char[] strAttribute = "", bool bShow = true, bool bEquip = false)
@@ -1429,7 +1431,7 @@ stock float fmin(float n1, float n2)
 	return n1 < n2 ? n1 : n2;
 }
 
-stock char GetJMButton()
+stock char[] GetJMButton()
 {
 	char strBuffer[18];
 	switch(JM_ButtonType)
@@ -1441,7 +1443,7 @@ stock char GetJMButton()
 	return strBuffer;
 }
 
-stock char GetMJTButton()
+stock char[] GetMJTButton()
 {
 	char strBuffer[18];
 	switch(MJT_ButtonType)

@@ -664,6 +664,8 @@ stock int SetClip(int client, int slot, int clip)
 	{
 		SetEntProp(weapon, Prop_Send, "m_iClip1", clip);
 	}
+
+	return 0;
 }
 
 stock int SetAmmo(int client, int slot, int ammo)
@@ -675,6 +677,8 @@ stock int SetAmmo(int client, int slot, int ammo)
 		int iAmmoTable = FindSendPropInfo("CTFPlayer", "m_iAmmo");
 		SetEntData(client, iAmmoTable+iOffset, ammo, 4, true);
 	}
+
+	return 0;
 }
 
 stock int SpawnWeapon(int client, char[] name, int index, int level, int qual, char[] att)
@@ -840,6 +844,8 @@ public Action OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 			}
 		}
 	}
+
+	return Plugin_Continue;
 }
 
 public Action OnUberDeploy(Event event, const char[] name, bool dontBroadcast)
@@ -856,6 +862,8 @@ public Action OnUberDeploy(Event event, const char[] name, bool dontBroadcast)
 			}
 		}
 	}
+
+	return Plugin_Continue;
 }
 
 
@@ -905,6 +913,8 @@ public Action GainLife(Handle timer, any boss)
 		SetHudTextParams(-1.0, 0.42, 1.0, 255, 255, 255, 255);
 		ShowSyncHudText(bClient, cooldownHUD, "%t","life_regeneration",timeleft[boss]);
 	}
+
+	return Plugin_Continue;
 }
 
 public Action ResetCharge(Handle timer, any boss)
@@ -912,6 +922,7 @@ public Action ResetCharge(Handle timer, any boss)
 	int slot=boss%10000;
 	boss/=1000;
 	FF2_SetBossCharge(boss, slot, 0.0);
+	return Plugin_Continue;
 }
 
 public Action SentryBustPrepare(Handle timer, any bClient)
@@ -920,6 +931,7 @@ public Action SentryBustPrepare(Handle timer, any bClient)
 		FakeClientCommand(bClient, "taunt");
 	SetEntityMoveType(bClient, MOVETYPE_NONE);
 	SDKHook(bClient, SDKHook_OnTakeDamage, BlockDamage);
+	return Plugin_Continue;
 }
 
 public Action SentryBusting(Handle timer, any bClient)
@@ -976,6 +988,8 @@ public Action DeleteParticle(Handle timer, int ref)
 	int Ent = EntRefToEntIndex(ref);
 	if(IsValidEntity(Ent))
 		RemoveEntity(Ent);
+
+	return Plugin_Continue;
 }
 
 

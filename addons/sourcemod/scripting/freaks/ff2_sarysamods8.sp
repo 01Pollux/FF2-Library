@@ -1419,6 +1419,8 @@ public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcas
 	}
 	
 	CreateTimer(0.3, Timer_PostRoundStartInits, _, TIMER_FLAG_NO_MAPCHANGE);
+
+	return Plugin_Continue;
 }
 
 public Action Timer_PostRoundStartInits(Handle timer)
@@ -1650,6 +1652,8 @@ public Action Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
 	}
 	
 	PluginActiveThisRound = false;
+
+	return Plugin_Continue;
 }
 
 public Action FF2_OnAbility2(int bossPlayer, const char[] plugin_name, const char[] ability_name, int status)
@@ -1681,6 +1685,8 @@ public Action FF2_OnAbility2(int bossPlayer, const char[] plugin_name, const cha
 		Rage_CrippleStacks(bossPlayer);
 	else if (!strcmp(ability_name, FNAP2_STRING))
 		Rage_FNAPSentryStun(bossPlayer);
+
+	return Plugin_Continue;
 }
 
 /**
@@ -1809,6 +1815,8 @@ Action OnDOTAbilityTick(int clientIdx, int tickCount)
 
 	// suppress
 	if (tickCount) { }
+
+	return Plugin_Continue;
 }
 
 /**
@@ -1819,6 +1827,8 @@ public Action EM_RestoreRage(Handle timer, any bossIdx)
 	int client = GetClientOfUserId(bossIdx);
 	if (client && RoundInProgress)
 		FF2_SetBossCharge(client, 0, 100.0);
+
+	return Plugin_Continue;
 }
 
 // original credit to Phatrages, I only really tweaked it slightly.
@@ -2122,7 +2132,7 @@ public void EM_Tick(int clientIdx, float curTime)
 				beaconPos[1] = machineOrigin[1];
 				beaconPos[2] = machineOrigin[2] + EMA_BeaconZOffset;
 			
-				static color[4];
+				static int color[4];
 				color[0] = (EMA_BeaconColor>>16)&0xff;
 				color[1] = (EMA_BeaconColor>>8)&0xff;
 				color[2] = (EMA_BeaconColor)&0xff;
@@ -2517,6 +2527,8 @@ public Action MM_CheckSuicide(int clientIdx, const char[] command, int argc)
 			MM_OnMinionSuicide(clientIdx, GetEngineTime(), (MM_Flags & MM_FLAG_MINION_SUICIDE_PUNISHMENT) != 0);
 		MMM_Blacklisted[clientIdx] = true;
 	}
+
+	return Plugin_Continue;
 }
 
 public void MM_TriggerRevenge(int clientIdx)
@@ -5122,7 +5134,7 @@ public void Rage_PickupTrap(int clientIdx)
 			break;
 			
 		// iterate through potential entities for trapping...
-		static potentials[200];
+		static int potentials[200];
 		int validCount = 0;
 		static char classname[MAX_ENTITY_CLASSNAME_LENGTH];
 		for (int pass = 0; pass < 4; pass++)
@@ -5232,7 +5244,7 @@ public void PT_Tick(float curTime)
 				SetEntityRenderColor(dispenser, 0, 0, 0, 255);
 			}
 
-			static medicHealCount[MAX_PLAYERS_ARRAY];
+			static int medicHealCount[MAX_PLAYERS_ARRAY];
 			for (int victim = 1; victim < MAX_PLAYERS; victim++)
 				medicHealCount[victim] = 0;
 			for (int medic = 1; medic < MAX_PLAYERS; medic++)
@@ -5949,6 +5961,8 @@ public Action Timer_RemoveEntity(Handle timer, any entid)
 	{
 		RemoveEntity(entity);
 	}
+
+	return Plugin_Continue;
 }
 
 stock bool IsLivingPlayer(int clientIdx)
@@ -6160,11 +6174,12 @@ stock float fixAngle(float angle)
 }
 
 // really wish that the original GetVectorAngles() worked this way.
-stock float GetVectorAnglesTwoPoints(const float startPos[3], const float endPos[3], float angles[3])
+stock float GetVectorAnglesTwoPoints(const float startPos[3], const float endPos[3], float& angles[3])
 {
 	static float tmpVec[3];
 	MakeVectorFromPoints(endPos, startPos, tmpVec);
 	GetVectorAngles(tmpVec, angles);
+	return 0.0;
 }
 
 stock float GetVelocityFromPointsAndInterval(float pointA[3], float pointB[3], float deltaTime)
@@ -6348,7 +6363,7 @@ stock void Nope(int clientIdx)
 }
 
 // stole this stock from KissLick. it's a good stock!
-stock void DispatchKeyValueFormat(int entity, const char[] keyName, const char[] format, any:...)
+stock void DispatchKeyValueFormat(int entity, const char[] keyName, const char[] format, any ...)
 {
 	static char value[256];
 	VFormat(value, sizeof(value), format, 4);

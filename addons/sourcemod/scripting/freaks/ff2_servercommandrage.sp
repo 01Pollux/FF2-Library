@@ -120,6 +120,7 @@ public Action EndCommandGlobal(Handle timer, DataPack pack)
 	char rageEndCommandParameters[PLATFORM_MAX_PATH];
 	pack.ReadString(rageEndCommandParameters, sizeof(rageEndCommandParameters));
 	ServerCommand("%s %s", rageEndCommand, rageEndCommandParameters);
+	return Plugin_Continue;
 }
 
 
@@ -136,6 +137,8 @@ public Action EndCommandBoss_Timer(Handle timer, DataPack pack)
 	{
 		FakeClientCommand(GetClientUserId(Boss),"%s %s", rageEndCommand, rageEndCommandParameters);
 	}
+
+	return Plugin_Continue;
 }
 
 public Action EndCommand_Timer(Handle timer, DataPack pack)
@@ -151,4 +154,6 @@ public Action EndCommand_Timer(Handle timer, DataPack pack)
 	{
 		ServerCommand("%s #%i %s", rageEndCommand, GetClientUserId(client), rageEndCommandParameters);
 	}
+
+	return Plugin_Continue;
 }

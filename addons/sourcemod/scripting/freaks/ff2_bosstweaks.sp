@@ -57,9 +57,10 @@ public void OnPluginStart2()
 public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcast)
 {
 	if(!FF2_IsFF2Enabled() || FF2_GetRoundState()!=1)
-		return;
+		return Plugin_Continue;
 		
 	PrepareAbilities();
+	return Plugin_Continue;
 }
 
 public void PrepareAbilities()
@@ -213,6 +214,8 @@ public Action ShowMessage(Handle timer, DataPack pack)
 			PrintCenterTextAll(message);
 		}
 	}
+
+	return Plugin_Continue;
 }
 
 public Action SoundHook(int clients[MAXPLAYERS], int& numClients, char sound[PLATFORM_MAX_PATH],
@@ -346,6 +349,7 @@ public Action Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
 		}
 	}
 	g_headscale = 0.0;
+	return Plugin_Continue;
 }
 
 public void HeadScale_Think(int client)
@@ -571,4 +575,7 @@ stock bool IsValidClient(int client)
 	return true;
 }
 
-public Action FF2_OnAbility2(int index, const char[] plugin_name, const char[] ability_name, int action){}
+public Action FF2_OnAbility2(int index, const char[] plugin_name, const char[] ability_name, int action)
+{
+	return Plugin_Continue;
+}
