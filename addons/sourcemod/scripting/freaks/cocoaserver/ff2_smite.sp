@@ -2,6 +2,7 @@
 
 #include <ff2_ams2>
 #include <sdkhooks>
+#include "modules/stocks.inc"
 
 bool Ability_IsAMS[MAXPLAYERS + 1];
 FF2GameMode ff2_gm;
@@ -24,11 +25,12 @@ public Plugin myinfo = {
 
 #define ABILITY_SMITE		"rage_smite"	// ability name
 #define ABILITY_PREFIX	"SMITE"	// abbreviation of ability name
+#define LASERBEAM "sprites/laserbeam.vmt"
 
 //Ability args.
 #define SMITE_SOUND "ambient_mp3/halloween/thunder_04.mp3"
-int Smite_Number;	//how many victims should we have.
-float Smite_Radius;	//pick victims in this range.
+//int Smite_Number;	//how many victims should we have.
+//float Smite_Radius;	//pick victims in this range.
 int SpriteAndHaloMdlIdx[2];
 
 #define KILL_ENT_IN(%1,%2) \
@@ -75,7 +77,7 @@ public void FF2AMS_PreRoundStart(int client)
 {
 	MyAMSPlayer player = MyAMSPlayer(client);
 	if (player.HasAbility(this_plugin_name, ABILITY_SMITE))	{
-		Ability_IsAMS[client] = FF2AMS_PushToAMS(client, this_plugin_name, ABILITY_SAMPLE, ABILITY_PREFIX);	// return true if pusing ams2 was successful
+		Ability_IsAMS[client] = FF2AMS_PushToAMS(client, this_plugin_name, ABILITY_SMITE, ABILITY_PREFIX);	// return true if pusing ams2 was successful
 	}
 }
 
@@ -135,17 +137,16 @@ public void SMITE_Invoke(int client, StringMap hMap)
 		}
 	}
 
-	Smite_Start(client, victims, radius, warningtime);
+	Smite_Start(client, victims, numofvictims, radius, warningtime);
 }
 
-void Smite_Start(const int boss_clientindex, const int clients[], float radius, float warningtime)
+void Smite_Start(const int boss_clientindex, const int[] clients, const int clients_size, float radius, float warningtime)
 {
-	int clients_size = GetArraySize(clients);
-	float vec[clients_size][3];
+	float vec[3];
 	for(int i = 0; i < clients_size; i++)
 	{
 		// show warning becaon.
-		GetClientAbsOrigin(clients[i], vec[i]);
+		GetClientAbsOrigin(clients[i], vec);
 		TE_SetupBeamRingPoint(
 			vec,
 			10.0,
@@ -162,47 +163,47 @@ void Smite_Start(const int boss_clientindex, const int clients[], float radius, 
 			0
 		);
 		TE_SendToAll();
-	}
 
-	DataPack pack;
-	CreateDataTimer(warningtime, Timer_DoSmite, pack);
-	pack.WriteCellArray(clients, clients_size);
-	pack.WriteCell(clients_size);
-	pack.WriteFloatArray(vec, sizeof(vec));
-	pack.WriteFloat(radius);
-	pack.WriteCell(boss_clientindex);
+		DataPack dp;
+		CreateDataTimer(warningtime, Timer_DoSmite, dp);
+		int victim = clients[i];
+		dp.WriteCell(victim);
+		dp.WriteFloat(radius);
+		//dp.WriteCell(clients_size);
+		dp.WriteCell(boss_clientindex);
+		dp.WriteFloatArray(vec, 3);
+	}
 }
 
-Action Timer_DoSmite(Handle timer, DataPack pack);
+Action Timer_DoSmite(Handle timer, DataPack pack)
 {
 	pack.Reset();
-	int clients_size = pack.ReadCell();
-	int boss_clientindex = pack.ReadCell();
+	int victim = pack.ReadCell();
 	float radius = pack.ReadFloat();
-
-	int clients[clients_size];	pack.ReadCellArray(clients, clients_size);
-	float vec[clients_size][3];	pack.ReadFloatArray(vec, clients_size);
+	//int clients_size = pack.ReadCell();
+	int boss_clientindex = pack.ReadCell();
+	float vec[3];	pack.ReadFloatArray(vec, 3);
+	
 	delete pack;
 
-	for(int i = 0; i < clients_size; i++)
+	float origin[3];
+	GetClientAbsOrigin(victim, origin);
+	// check if player is still in radius.
+	float cal[3];
+	cal[0] = origin[0] - vec[0];
+	cal[2] = origin[2] - vec[2];
+
+	bool shouldbesmite;
+	if ( (-radius > cal[0] > radius) && (-radius > cal[2] > radius) )
+		shouldbesmite = true;
+
+	if (shouldbesmite)
 	{
-		float origin[3];
-		GetClientAbsOrigin(clients[i], origin);
-		// check if player is still in radius.
-		float cal[3];
-		cal[0] = origin[0] - vec[i][0];
-		cal[2] = origin[2] - vec[i][2];
-
-		bool shouldbesmite;
-		if ( (-radius > cal[0] > radius) && (-radius > cal[2] > radius) )
-			shouldbesmite = true;
-
-		if (shouldbesmite)
-		{
-			// you are still in the radius after the countdown!
-			SmiteYou(boss_clientindex, client[i]);
-		}
+		// you are still in the radius after the countdown!
+		SmiteYou(boss_clientindex, victim);
 	}
+
+	return Plugin_Continue;
 }
 
 void SmiteYou(const int client, const int victim)
