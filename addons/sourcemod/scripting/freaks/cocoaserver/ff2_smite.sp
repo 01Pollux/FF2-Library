@@ -1,7 +1,6 @@
 #define FF2_USING_AUTO_PLUGIN
 
 #include <ff2_ams2>
-#include <smlib>
 #include <sdkhooks>
 
 bool Ability_IsAMS[MAXPLAYERS + 1];
@@ -190,8 +189,15 @@ Action Timer_DoSmite(Handle timer, DataPack pack);
 		float origin[3];
 		GetClientAbsOrigin(clients[i], origin);
 		// check if player is still in radius.
-		float distance = GetVectorDistance(vec[i], origin);
-		if (distance < radius)
+		float cal[3];
+		cal[0] = origin[0] - vec[i][0];
+		cal[2] = origin[2] - vec[i][2];
+
+		bool shouldbesmite;
+		if ( (-radius > cal[0] > radius) && (-radius > cal[2] > radius) )
+			shouldbesmite = true;
+
+		if (shouldbesmite)
 		{
 			// you are still in the radius after the countdown!
 			SmiteYou(boss_clientindex, client[i]);
@@ -223,6 +229,69 @@ void SmiteYou(const int client, const int victim)
 		return;
 
 	KILL_ENT_IN(strike[1], 0.25)
-	
-		
+
+	float pos[3];
+	GetClientAbsOrigin(victim, pos);
+	pos[2] += 32.0;
+	TeleportEntity(strike[0], pos, NULL_VECTOR, NULL_VECTOR);
+	pos[2] += 1024.0;
+	TeleportEntity(strike[1], pos, NULL_VECTOR, NULL_VECTOR);
+
+	int beam = ConnectWithBeam(strike[1], strike[0]);
+	KILL_ENT_IN(beam, 0.5)
+}
+
+void Smite_Post(int uid)
+{
+	int client = GetClientOfUserId(uid);
+	if (!client)	return;
+
+	int ragdoll = GetEntPropEnt(client, Prop_Send, "m_hRagdoll");
+	if (ragdoll <= MaxClients)
+		return;
+
+	int disssolver = CreateEntityByName("env_entity_dissolver");
+	if (disssolver <= MaxClients)
+		return;
+
+	DispatchKeyValue(disssolver, "dissolvetype", "0");
+	DispatchKeyValue(disssolver, "magnitude", "1");
+	DispatchKeyValue(disssolver, "target", "!activator");
+	AcceptEntityInput(disssolver, "Disssolve", ragdoll);
+	AcceptEntityInput(disssolver, "Kill");
+}
+
+// yoink
+stock int ConnectWithBeam(int iEnt, int iEnt2, int iRed=255, int iGreen=255, int iBlue=255, float fStartWidth=1.0, float fEndWidth=1.0, float fAmp=1.35){
+	int iBeam = CreateEntityByName("env_beam");
+	if(iBeam <= MaxClients)
+		return -1;
+
+	if(!IsValidEntity(iBeam))
+		return -1;
+
+	SetEntityModel(iBeam, LASERBEAM);
+	char sColor[16];
+	Format(sColor, sizeof(sColor), "%d %d %d", iRed, iGreen, iBlue);
+
+	DispatchKeyValue(iBeam, "rendercolor", sColor);
+	DispatchKeyValue(iBeam, "life", "0");
+
+	DispatchSpawn(iBeam);
+
+	SetEntPropEnt(iBeam, Prop_Send, "m_hAttachEntity", EntIndexToEntRef(iEnt));
+	SetEntPropEnt(iBeam, Prop_Send, "m_hAttachEntity", EntIndexToEntRef(iEnt2), 1);
+
+	SetEntProp(iBeam, Prop_Send, "m_nNumBeamEnts", 2);
+	SetEntProp(iBeam, Prop_Send, "m_nBeamType", 2);
+
+	SetEntPropFloat(iBeam, Prop_Data, "m_fWidth", fStartWidth);
+	SetEntPropFloat(iBeam, Prop_Data, "m_fEndWidth", fEndWidth);
+
+	SetEntPropFloat(iBeam, Prop_Data, "m_fAmplitude", fAmp);
+
+	SetVariantFloat(32.0);
+	AcceptEntityInput(iBeam, "Amplitude");
+	AcceptEntityInput(iBeam, "TurnOn");
+	return iBeam;
 }
