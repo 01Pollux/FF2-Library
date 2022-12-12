@@ -89,6 +89,8 @@ int BossTeam = view_as<int>(TFTeam_Blue);
 bool RoundInProgress = false;
 bool PluginActiveThisRound = false;
 
+FF2GameMode ff2_gm;
+
 public Plugin myinfo = {
 	name = "Freak Fortress 2: Improved Saxton",
 	author = "sarysa",
@@ -461,7 +463,7 @@ public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcas
 public Action Timer_PostRoundStartInits(Handle timer)
 {
 	// hale suicided (or plugin not active)
-	if (!RoundInProgress || !PluginActiveThisRound)
+	if (!RoundInProgress || !PluginActiveThisRound || ff2_gm.RoundState != StateRunning)
 		return Plugin_Handled;
 	
 	// finish initialization of stuff
@@ -549,7 +551,7 @@ public void Saxton_Cleanup()
 
 public Action FF2_OnAbility2(int bossPlayer, const char[] plugin_name, const char[] ability_name, int status)
 {
-	if (!RoundInProgress) // don't execute these rages with 0 players alive
+	if (!RoundInProgress || ff2_gm.RoundState != StateRunning) // don't execute these rages with 0 players alive
 		return Plugin_Continue;
 		
 	if (!strcmp(ability_name, SB_STRING))
@@ -1624,7 +1626,7 @@ public void SH_PreThink(int clientIdx)
  */
 public void OnGameFrame()
 {
-	if (!PluginActiveThisRound || !RoundInProgress)
+	if (!PluginActiveThisRound || !RoundInProgress || ff2_gm.RoundState != StateRunning)
 		return;
 	
 	float curTime = GetGameTime();
@@ -1694,7 +1696,7 @@ public Action OnPlayerRunCmd(int clientIdx, int& buttons, int& impulse,
 							float vel[3], float angles[3], int& weapon, 
 							int &subtype, int& cmdnum, int& tickcount, int& seed, int mouse[2])
 {
-	if (!PluginActiveThisRound || !RoundInProgress)
+	if (!PluginActiveThisRound || !RoundInProgress || ff2_gm.RoundState != StateRunning)
 		return Plugin_Continue;
 	else if (!IsLivingPlayer(clientIdx))
 		return Plugin_Continue;
