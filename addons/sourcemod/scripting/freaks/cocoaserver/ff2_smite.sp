@@ -48,6 +48,7 @@ public void OnMapStart()
 {
 	SpriteAndHaloMdlIdx[0] = PrecacheModel("sprites/laser.vmt");
 	SpriteAndHaloMdlIdx[1] = PrecacheModel("sprites/halo01.vmt");
+	PrecacheModel(LASERBEAM);
 }
 
 public Action FF2_OnAbility2(FF2Player boss, const char[] ability, FF2CallType_t ct)
