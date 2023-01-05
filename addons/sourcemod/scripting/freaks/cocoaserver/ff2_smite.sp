@@ -190,12 +190,15 @@ Action Timer_DoSmite(Handle timer, DataPack pack)
 	float origin[3];
 	GetClientAbsOrigin(victim, origin);
 	// check if player is still in radius.
-	float cal[3];
+	/* float cal[3];
 	cal[0] = origin[0] - vec[0];
-	cal[2] = origin[2] - vec[2];
+	cal[1] = origin[1] - vec[1]
+	cal[2] = origin[2] - vec[2]; */
+	// Don't check z.
+	origin[2] = vec[2];
 
 	bool shouldbesmite;
-	if ( (-radius > cal[0] > radius) && (-radius > cal[2] > radius) )
+	if ( GetVectorDistance(vec, origin) < radius )
 		shouldbesmite = true;
 
 	if (shouldbesmite)
