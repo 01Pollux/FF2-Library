@@ -185,7 +185,7 @@ stock void FreezeTarget(int clientIdx, float freezetime)
 		
 			TeleportEntity(ragdoll[clientIdx], flPos, flAng, flVel);
 		
-			SetEntProp(ragdoll[clientIdx], Prop_Send, "m_iPlayerIndex", clientIdx);
+			SetEntPropEnt(ragdoll[clientIdx], Prop_Send, "m_hPlayer", clientIdx);
 			SetEntProp(ragdoll[clientIdx], Prop_Send, "m_bIceRagdoll", 1);
 			SetEntProp(ragdoll[clientIdx], Prop_Send, "m_iTeam", GetClientTeam(clientIdx));
 			SetEntProp(ragdoll[clientIdx], Prop_Send, "m_iClass", (view_as<int>(TF2_GetPlayerClass(clientIdx))));

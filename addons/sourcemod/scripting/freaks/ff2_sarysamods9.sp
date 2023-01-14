@@ -6099,7 +6099,7 @@ int CreateRagdoll(int client, float flSelfDestruct=0.0)
 		
 		TeleportEntity(iRag, flPos, flAng, flVel);
 		
-		SetEntProp(iRag, Prop_Send, "m_iPlayerIndex", client);
+		SetEntPropEnt(iRag, Prop_Send, "m_hPlayer", client);
 		SetEntProp(iRag, Prop_Send, "m_bIceRagdoll", 1);
 		SetEntProp(iRag, Prop_Send, "m_iTeam", GetClientTeam(client));
 		SetEntProp(iRag, Prop_Send, "m_iClass", view_as<int>(TF2_GetPlayerClass(client)));
