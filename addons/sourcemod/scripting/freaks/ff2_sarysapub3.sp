@@ -2868,7 +2868,7 @@ CreateRagdoll(client, Float:flSelfDestruct=0.0, bool:isIce=false)
 		
 		TeleportEntity(iRag, flPos, flAng, flVel);
 		
-		SetEntProp(iRag, Prop_Send, "m_iPlayerIndex", client);
+		SetEntPropEnt(iRag, Prop_Send, "m_hPlayer", client);
 		if (isIce)
 			SetEntProp(iRag, Prop_Send, "m_bIceRagdoll", 1);
 		SetEntProp(iRag, Prop_Send, "m_iTeam", GetClientTeam(client));

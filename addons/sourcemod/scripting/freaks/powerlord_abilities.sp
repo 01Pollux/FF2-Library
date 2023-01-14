@@ -117,7 +117,7 @@ public void OnClientPutInServer(int client)
 
 public Action RagdollSpawn(int entity)
 {
-	int player = GetEntProp(entity, Prop_Send, "m_iPlayerIndex");
+	int player = GetEntPropEnt(entity, Prop_Send, "m_hPlayer");
 	if (player >= 1 && player <= MaxClients && g_LastInjured[player] > 0)
 	{
 		int a_index=FF2_GetBossIndex(g_LastInjured[player]);
