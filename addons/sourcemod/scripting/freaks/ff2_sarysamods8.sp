@@ -5376,6 +5376,9 @@ public void SBV_Tick(int clientIdx, float curTime)
 			GetClientEyeAngles(enemy, enemyAngles);
 			static float anglesToBoss[3];
 			GetVectorAnglesTwoPoints(enemyPos, bossPos, anglesToBoss);
+
+			// Fix butt angles ? HotoCocoa: The angles right now will only work if player's butt is looking the boss.
+			NegateVector(anglesToBoss);
 			
 			// fix all angles
 			enemyAngles[0] = fixAngle(enemyAngles[0]);
