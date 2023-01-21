@@ -2,7 +2,9 @@
 
 #include <ff2_ams2>
 #include <sdkhooks>
+#include <smlib>
 #include "modules/stocks.inc"
+
 
 bool Ability_IsAMS[MAXPLAYERS + 1];
 FF2GameMode ff2_gm;
@@ -160,7 +162,7 @@ void Smite_Start(const int boss_clientindex, const int[] clients, const int clie
 			5.0,
 			0.1,
 			{25, 25, 112, 255},
-			10,
+			( RoundToFloor(radius) - 10 ) / RoundToFloor(warningtime),
 			0
 		);
 		TE_SendToAll();
