@@ -34,6 +34,11 @@ public Plugin myinfo = {
 //float Smite_Radius;	//pick victims in this range.
 int SpriteAndHaloMdlIdx[2];
 
+// ability config.
+int g_iSmiteNumofvictims;
+float g_fSmiteRadius;
+float g_fSmiteWarningtime;
+
 #define KILL_ENT_IN(%1,%2) \
 	SetVariantString("OnUser1 !self:Kill::" ... #%2 ... ":1"); \
 	AcceptEntityInput(%1, "AddOutput"); \
@@ -85,13 +90,11 @@ public void FF2AMS_PreRoundStart(int client)
 
 void Prep_StartAbilities()
 {
-	for(int client = 1; client <= MaxClients; client++)
-	{
-	  if (!IsClientInGame(client))
-			continue;
-
-
-	}
+	// for(int client = 1; client <= MaxClients; client++)
+	// {
+	//   if (!IsClientInGame(client))
+	// 		continue;
+	// }
 	//Prepare Value?
 }
 
@@ -115,15 +118,14 @@ public void SMITE_Invoke(int client, StringMap hMap)
 	// Rage code.
 	MyAMSPlayer player = MyAMSPlayer(client);
 
-	// how many victims. prepare value
-	int numofvictims = player.GetArgI(this_plugin_name, ABILITY_SMITE, "numbers", 3);
-	float radius = player.GetArgF(this_plugin_name, ABILITY_SMITE, "radius", 300.0);
-	float warningtime = player.GetArgF(this_plugin_name, ABILITY_SMITE, "warningtime", 2.0);
+	// Prepare config.
+	g_iSmiteNumofvictims = player.GetArgI(this_plugin_name, ABILITY_SMITE, "numbers", 3);
+	g_fSmiteRadius = player.GetArgF(this_plugin_name, ABILITY_SMITE, "radius", 300.0);
+	g_fSmiteWarningtime = player.GetArgF(this_plugin_name, ABILITY_SMITE, "warningtime", 2.0);
 
-
-	int[] victims = new int[numofvictims];
+	int[] victims = new int[g_iSmiteNumofvictims];
 	// Get random victim indies.
-	for(int i = 0; i < numofvictims; i++)
+	for(int i = 0; i < g_iSmiteNumofvictims; i++)
 	{
 		if (i == 0)
 		{
@@ -139,39 +141,35 @@ public void SMITE_Invoke(int client, StringMap hMap)
 		}
 	}
 
-	Smite_Start(client, victims, numofvictims, radius, warningtime);
+	Smite_Start(client, victims);
 }
 
-void Smite_Start(const int boss_clientindex, const int[] clients, const int clients_size, float radius, float warningtime)
+void Smite_Start(const int boss_clientindex, const int[] clients)
 {
 	float vec[3];
-	for(int i = 0; i < clients_size; i++)
+	for(int i = 0; i < g_iSmiteNumofvictims; i++)
 	{
 		// show warning becaon.
 		GetClientAbsOrigin(clients[i], vec);
 		TE_SetupBeamRingPoint(
 			vec,
 			10.0,
-			radius,
+			g_fSmiteRadius,
 			SpriteAndHaloMdlIdx[0],
 			SpriteAndHaloMdlIdx[1],
 			0,
 			15,
-			warningtime,
+			g_fSmiteWarningtime,
 			5.0,
 			0.1,
 			{25, 25, 112, 255},
-			( RoundToFloor(radius) - 10 ) / RoundToFloor(warningtime),
+			( RoundToFloor(g_fSmiteRadius) - 10 ) / RoundToFloor(g_fSmiteWarningtime),
 			0
 		);
 		TE_SendToAll();
 
 		DataPack dp;
-		CreateDataTimer(warningtime, Timer_DoSmite, dp);
-		int victim = clients[i];
-		dp.WriteCell(victim);
-		dp.WriteFloat(radius);
-		//dp.WriteCell(clients_size);
+		CreateDataTimer(g_fSmiteWarningtime, Timer_DoSmite, dp);
 		dp.WriteCell(boss_clientindex);
 		dp.WriteFloatArray(vec, 3);
 	}
@@ -180,32 +178,25 @@ void Smite_Start(const int boss_clientindex, const int[] clients, const int clie
 Action Timer_DoSmite(Handle timer, DataPack pack)
 {
 	pack.Reset();
-	int victim = pack.ReadCell();
-	float radius = pack.ReadFloat();
 	//int clients_size = pack.ReadCell();
 	int boss_clientindex = pack.ReadCell();
-	float vec[3];	pack.ReadFloatArray(vec, 3);
-	
+	float vec[3];	pack.ReadFloatArray(vec, 3);	
 	delete pack;
 
 	float origin[3];
-	GetClientAbsOrigin(victim, origin);
-	// check if player is still in radius.
-	/* float cal[3];
-	cal[0] = origin[0] - vec[0];
-	cal[1] = origin[1] - vec[1]
-	cal[2] = origin[2] - vec[2]; */
-	// Don't check z.
-	origin[2] = vec[2];
-
-	bool shouldbesmite;
-	if ( GetVectorDistance(vec, origin) < radius )
-		shouldbesmite = true;
-
-	if (shouldbesmite)
+	for(int i = 1; i <= MaxClients; i++)
 	{
-		// you are still in the radius after the countdown!
-		SmiteYou(boss_clientindex, victim);
+		if ( IsClientInGame(i) && IsPlayerAlive(i) && GetClientTeam(i) == VSH2Team_Red )
+		{
+			GetClientAbsOrigin(i, origin);
+			// check if player is still in radius but don't check z.
+			origin[2] = vec[2];
+
+			if ( GetVectorDistance(vec, origin) < g_fSmiteRadius )
+			{
+				SmiteYou(boss_clientindex, i);
+			}
+		}
 	}
 
 	return Plugin_Continue;
