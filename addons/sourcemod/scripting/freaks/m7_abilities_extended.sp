@@ -318,6 +318,8 @@ public Action event_player_death(Event event, const char[] name, bool dontBroadc
 	int attacker=GetClientOfUserId(event.GetInt("attacker"));
 	int client=GetClientOfUserId(event.GetInt("userid"));
 
+	if ( attacker < 1 || client < 1 )	return Plugin_Continue;
+
 	int boss=FF2_GetBossIndex(attacker); // Boss is an attacker
 	if(boss!=-1)
 	{
