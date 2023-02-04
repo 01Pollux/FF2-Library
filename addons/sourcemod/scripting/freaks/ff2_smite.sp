@@ -1,5 +1,6 @@
 #define FF2_USING_AUTO_PLUGIN
 
+#include <sourcemod>
 #include <ff2_ams2>
 #include <sdkhooks>
 #include "modules/stocks.inc"
@@ -162,7 +163,6 @@ Action Timer_DoSmite(Handle timer, DataPack pack)
 	//int clients_size = pack.ReadCell();
 	int boss_clientindex = pack.ReadCell();
 	float vec[3];	pack.ReadFloatArray(vec, 3);	
-	delete pack;
 
 	float origin[3];
 	for(int i = 1; i <= MaxClients; i++)
