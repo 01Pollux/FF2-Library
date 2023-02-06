@@ -911,8 +911,8 @@ public void SL_HitSoundsAndEffects(int clientIdx, int victim, float victimPos[3]
 {
 	if (strlen(SL_HitSound) > 3)
 	{
-		PseudoAmbientSound(victim, SL_HitSound[clientIdx]);
-		PseudoAmbientSound(victim, SL_HitSound[clientIdx]);
+		PseudoAmbientSound(victim, SL_HitSound);
+		PseudoAmbientSound(victim, SL_HitSound);
 	}
 	
 	if (!IsEmptyString(SL_HitEffect))

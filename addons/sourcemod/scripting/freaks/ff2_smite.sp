@@ -180,7 +180,7 @@ Action Timer_DoSmite(Handle timer, DataPack pack)
 		}
 	}
 
-	return Plugin_Continue;
+	return Plugin_Stop;
 }
 
 void SmiteYou(const int client, const int victim)
