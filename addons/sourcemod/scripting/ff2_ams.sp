@@ -66,6 +66,7 @@ public void OnLibraryAdded(const char[] name)
 		VSH2_Hook(OnBossThink, 		_OnBossThink);
 		VSH2_Hook(OnBossMedicCall, 	_OnBossRage);
 		VSH2_Hook(OnBossTaunt, 		_OnBossRage);
+		VSH2_Hook(OnVariablesReset,	_OnVariablesReset);
 
 		if(ff2_gm.RoundState == StateRunning) {
 			VSH2Player[] pl2 = new VSH2Player[MaxClients];
@@ -84,6 +85,7 @@ public void OnLibraryRemoved(const char[] name)
 		VSH2_Unhook(OnBossThink, _OnBossThink);
 		VSH2_Unhook(OnBossMedicCall, _OnBossRage);
 		VSH2_Unhook(OnBossTaunt, _OnBossRage);
+		VSH2_Unhook(OnVariablesReset,	_OnVariablesReset);
 	}
 }
 
@@ -158,6 +160,13 @@ public Action _OnBossRage(const VSH2Player vsh2player)
 
 	player.bWantsToRage = true;
 	return Plugin_Stop;
+}
+
+void _OnVariablesReset(const VSH2Player vsh2player)
+{
+	// Set everyone's bHasAMS to false, so that vsh2 will not report missing property.
+	AMSUser player = ToAMSUser(vsh2player);
+	player.bHasAMS = false;
 }
 
 static void NextFrame_InitAMSPlayer(int client)
