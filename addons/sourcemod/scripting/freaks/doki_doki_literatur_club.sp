@@ -242,6 +242,8 @@ public Action event_round_end(Handle event, const char[] name, bool dontBroadcas
 
 public Action event_player_death(Event event, const char[] name, bool dontBroadcast)
 {
+	if ( event.GetInt("death_flags") & TF_DEATHFLAG_DEADRINGER )	return Plugin_Continue;
+	
 	int attacker=GetClientOfUserId(event.GetInt("attacker"));
 	int client=GetClientOfUserId(event.GetInt("userid"));
 	int boss=FF2_GetBossIndex(attacker); // Boss is an attacker
