@@ -105,7 +105,10 @@ public void SMITE_Invoke(int client, StringMap hMap)
 	g_fSmiteRadius = player.GetArgF(this_plugin_name, ABILITY_SMITE, "radius", 300.0);
 	g_fSmiteWarningtime = player.GetArgF(this_plugin_name, ABILITY_SMITE, "warningtime", 2.0);
 
+
+	if (ff2_gm.iLivingReds < g_iSmiteNumofvictims)	g_iSmiteNumofvictims = ff2_gm.iLivingReds;
 	int[] victims = new int[g_iSmiteNumofvictims];
+
 	// Get random victim indies.
 	for(int i = 0; i < g_iSmiteNumofvictims; i++)
 	{
@@ -142,9 +145,9 @@ void Smite_Start(const int boss_clientindex, const int[] clients)
 			0,
 			15,
 			g_fSmiteWarningtime,
-			5.0,
-			0.1,
-			{25, 25, 112, 255},
+			15.0,
+			10.0,
+			{220, 20, 60, 255},
 			( RoundToFloor(g_fSmiteRadius) - 10 ) / RoundToFloor(g_fSmiteWarningtime),
 			0
 		);
