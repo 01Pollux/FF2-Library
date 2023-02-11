@@ -4,6 +4,7 @@
 #include <ff2_ams2>
 #include <sdkhooks>
 #include "modules/stocks.inc"
+#include <smlib>
 
 
 bool Ability_IsAMS[MAXPLAYERS + 1];
@@ -136,7 +137,7 @@ void Smite_Start(const int boss_clientindex, const int[] clients)
 	{
 		// show warning becaon.
 		GetClientAbsOrigin(clients[i], vec);
-		TE_SetupBeamRingPoint(
+		/* TE_SetupBeamRingPoint(
 			vec,
 			10.0,
 			g_fSmiteRadius,
@@ -145,13 +146,38 @@ void Smite_Start(const int boss_clientindex, const int[] clients)
 			0,
 			15,
 			g_fSmiteWarningtime,
-			15.0,
-			10.0,
+			3000.0,
+			2000.0,
 			{220, 20, 60, 255},
 			( RoundToFloor(g_fSmiteRadius) - 10 ) / RoundToFloor(g_fSmiteWarningtime),
 			0
 		);
-		TE_SendToAll();
+		TE_SendToAll(); */
+		float min_vec[3];
+		min_vec[0] = vec[0] - g_fSmiteRadius;
+		min_vec[1] = vec[1] - g_fSmiteRadius;
+		min_vec[2] = -9999.0;
+		
+		float max_vec[3];	
+		max_vec[0] = vec[0] + g_fSmiteRadius;
+		max_vec[1] = vec[1] + g_fSmiteRadius;
+		max_vec[2] = 9999.0;
+
+		Effect_DrawBeamBoxToAll(
+			min_vec,
+			max_vec,
+			SpriteAndHaloMdlIdx[0],
+			SpriteAndHaloMdlIdx[1],
+			0,
+			15,
+			g_fSmiteWarningtime,
+			100.0,
+			100.0,
+			2,
+			1.0,
+			{220, 20, 60, 255},
+			( RoundToFloor(g_fSmiteRadius) - 10 ) / RoundToFloor(g_fSmiteWarningtime)
+		);
 
 		DataPack dp;
 		CreateDataTimer(g_fSmiteWarningtime, Timer_DoSmite, dp);
