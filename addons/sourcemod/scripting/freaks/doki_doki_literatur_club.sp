@@ -122,6 +122,25 @@ public void OnPluginStart2()
 
 	fov_offset = FindSendPropInfo("CBasePlayer", "m_iFOV");
 	zoom_offset = FindSendPropInfo("CBasePlayer", "m_iDefaultFOV");
+
+	VSH2_Hook(OnBossConditionChange, DDLC_OnBossConditionChange);
+}
+
+public void OnPluginEnd()
+{
+	if (FF2_IsFF2Enabled())	VSH2_Unhook(OnBossConditionChange, DDLC_OnBossConditionChange);
+}
+
+Action DDLC_OnBossConditionChange(const VSH2Player player, const TFCond cond, const bool removing)
+{
+	FF2Player ff2_player = FF2Player(player.userid, true);
+	if (ff2_player.HasAbility(this_plugin_name, DATAMINING))
+	{
+		if (cond == TFCond_Disguised && removing)
+			return Plugin_Handled;
+	}
+
+	return Plugin_Continue;
 }
 
 public void OnMapStart()
