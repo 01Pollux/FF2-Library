@@ -649,7 +649,7 @@ public Action DeleteParticles(Handle timer, any particle)
         }
     }
 
-	return Plugin_Continue;
+    return Plugin_Continue;
 }
 
 void TeleportEffects(float pos[3])
