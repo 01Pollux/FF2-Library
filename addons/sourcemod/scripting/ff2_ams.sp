@@ -174,7 +174,8 @@ static void NextFrame_InitAMSPlayer(int client)
 	if (ff2_gm.FF2IsOn)
 	{
 		AMSUser player = AMSUser(client);
-		player.bHasAMS = player.bWantsToRage = false;
+		player.bHasAMS = false;
+		player.bWantsToRage = false;
 	}
 }
 
