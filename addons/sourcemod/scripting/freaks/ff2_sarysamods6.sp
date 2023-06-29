@@ -457,7 +457,7 @@ public void OnPluginStart2()
 	}
 }
 
-public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcast)
+Action Event_RoundStart(Event event, const char[] name, bool dontBroadcast)
 {
 	RoundInProgress = true;
 	
@@ -841,12 +841,14 @@ public Action Event_RoundStart(Event event, const char[] name, bool dontBroadcas
 	
 	// need to initialize rocket barrage later.
 	CreateTimer(0.3, PostRoundStartInits, _, TIMER_FLAG_NO_MAPCHANGE);
+
+	return Plugin_Continue;
 }
 
 public Action PostRoundStartInits(Handle timer)
 {
 	if (!RoundInProgress)
-		return;
+		return Plugin_Continue;
 		
 	for (int clientIdx = 1; clientIdx < MAX_PLAYERS; clientIdx++)
 	{
@@ -964,6 +966,8 @@ public Action PostRoundStartInits(Handle timer)
 				break; // don't check all 99, would be wasteful. assume a list of blacklisted weapons starts with 0 or 1.
 		}
 	}
+
+	return Plugin_Continue;
 }
 
 public Action Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
@@ -1057,6 +1061,8 @@ public Action Event_RoundEnd(Event event, const char[] name, bool dontBroadcast)
 	}
 	
 	UC_ActiveThisRound = false;
+
+	return Plugin_Continue;
 }
 
 public Action FF2_OnAbility2(int bossPlayer, const char[] plugin_name, const char[] ability_name, int status)
@@ -1167,7 +1173,7 @@ void OnDOTUserDeath(int clientIdx, int isInGame)
 Action OnDOTAbilityTick(int clientIdx, int tickCount)
 {	
 	if (!PluginActiveThisRound)
-		return;
+		return Plugin_Continue;
 
 	if (NM_CanUse[clientIdx])
 	{
@@ -1177,6 +1183,8 @@ Action OnDOTAbilityTick(int clientIdx, int tickCount)
 
 	// suppress
 	if (clientIdx || tickCount) { }
+
+	return Plugin_Continue;
 }
 
 /**
@@ -2629,6 +2637,8 @@ public Action WA_PerformDX80Check()
 			QueryClientConVar(clientIdx, "mat_dxlevel", WA_DX80Result);
 		}
 	}
+
+	return Plugin_Continue;
 }
  
 public Action WA_NoOverlay(int clientIdx, int argsInt)
@@ -2949,6 +2959,8 @@ public Action WA_PlayerSpawn(Event event, const char[] name, bool dontBroadcast)
 		WA_GoodWater(clientIdx);
 	SDKHook(clientIdx, SDKHook_PreThink, WA_PreThink); // every player needs to use this, because of spellbook issue
 	SDKHook(clientIdx, SDKHook_OnTakeDamage, WA_OnTakeDamage);
+
+	return Plugin_Continue;
 }
 
 // based on asherkin and voogru's code, though this is almost exactly like the code used for Snowdrop's rockets
@@ -3733,6 +3745,8 @@ public Action Timer_RemoveEntity(Handle timer, any entid)
 	int entity = EntRefToEntIndex(entid);
 	if (IsValidEntity(entity))
 		RemoveEntity(entity);
+
+	return Plugin_Stop;
 }
 
 stock bool IsLivingPlayer(int clientIdx)
@@ -3983,7 +3997,7 @@ stock float fixAngle(float angle)
 }
 
 // really wish that the original GetVectorAngles() worked this way.
-stock float GetVectorAnglesTwoPoints(float startPos[3], float endPos[3], float angles[3])
+stock void GetVectorAnglesTwoPoints(float startPos[3], float endPos[3], float angles[3])
 {
 	static float tmpVec[3];
 	//tmpVec[0] = startPos[0] - endPos[0];
@@ -4168,7 +4182,7 @@ stock bool CylinderCollision(float cylinderOrigin[3], float colliderOrigin[3], f
 	return GetVectorDistance(tmpVec1, tmpVec2, true) <= maxDistance * maxDistance;
 }
 
-stock float GetRayAngles(float startPoint[3], float endPoint[3], float angle[3])
+stock void GetRayAngles(float startPoint[3], float endPoint[3], float angle[3])
 {
 	static float tmpVec[3];
 	tmpVec[0] = endPoint[0] - startPoint[0];

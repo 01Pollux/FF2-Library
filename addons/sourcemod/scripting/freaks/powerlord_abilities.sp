@@ -115,7 +115,7 @@ public void OnClientPutInServer(int client)
 	SDKHook(client, SDKHook_OnTakeDamagePost, OnTakeDamagePost);
 }
 
-public Action RagdollSpawn(int entity)
+Action RagdollSpawn(int entity)
 {
 	int player = GetEntPropEnt(entity, Prop_Send, "m_hPlayer");
 	if (player >= 1 && player <= MaxClients && g_LastInjured[player] > 0)
@@ -179,6 +179,8 @@ public Action RagdollSpawn(int entity)
 			}
 		}
 	}
+
+	return Plugin_Continue;
 }
 
 public void OnTakeDamagePost(int victim, int attacker, int inflictor, 
@@ -220,7 +222,7 @@ public Action event_player_death(Event event, const char[] name, bool dontBroadc
 	return Plugin_Continue;
 }
 
-public Action event_round_end(Event event, const char[] name, bool dontBroadcast)
+Action event_round_end(Event event, const char[] name, bool dontBroadcast)
 {
 	for (int i = 1; i <= MaxClients; i++)
 	{
@@ -234,6 +236,8 @@ public Action event_round_end(Event event, const char[] name, bool dontBroadcast
 			}
 		}
 	}
+
+	return Plugin_Continue;
 }
 
 public void OnClientDisconnect(int client)
