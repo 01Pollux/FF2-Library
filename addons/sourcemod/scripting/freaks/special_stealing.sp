@@ -124,7 +124,7 @@ public void STEA_Invoke(int client, int index)
 		}
 	}
 
-	int sentry = FindEntityByClassname(MaxClients, "obj_sentrygun");
+	int sentry = FindEntityByClassname(-1, "obj_sentrygun");
 	if(IsValidEntity(sentry))
 	{
 		GetEntPropVector(sentry, Prop_Send, "m_vecOrigin", sentryPosition);
@@ -137,7 +137,7 @@ public void STEA_Invoke(int client, int index)
 		}
 	}
 
-	int dispenser = FindEntityByClassname(MaxClients, "obj_dispenser");
+	int dispenser = FindEntityByClassname(-1, "obj_dispenser");
 	if(IsValidEntity(dispenser))
 	{
 		GetEntPropVector(dispenser, Prop_Send, "m_vecOrigin", dispenserPosition);
@@ -150,7 +150,7 @@ public void STEA_Invoke(int client, int index)
 		}
 	}
 
-	int teleporters = FindEntityByClassname(MaxClients, "obj_teleporter");
+	int teleporters = FindEntityByClassname(-1, "obj_teleporter");
 	if(IsValidEntity(teleporters))
 	{
 		GetEntPropVector(teleporters, Prop_Send, "m_vecOrigin", teleporterPosition);
