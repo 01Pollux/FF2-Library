@@ -290,7 +290,7 @@ public Action OnObjectDeflected(Event event, const char[] name, bool dontBroadca
 
 public Action OnVoiceline(int client, const char[] command, int args)
 {
-	if(!IsPlayerAlive(client) || FF2_GetRoundState()!=1 || !IsBackup[client])
+	if( !IsClientInGame(client) || !IsPlayerAlive(client) || FF2_GetRoundState()!=1 || !IsBackup[client])
 		return Plugin_Continue;
 
 	char arg1[4], arg2[4];
