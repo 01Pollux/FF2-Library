@@ -1780,6 +1780,10 @@ void createBoner(int bonerMan, int bonerHealth, float bonerLifeSpan, float vecOr
 						CreateTimer(bonerLifeSpan, bonerKill, bonerMan, TIMER_FLAG_NO_MAPCHANGE);
 					}
 					//SetEntProp(GetPlayerResourceEntity(), Prop_Send, "m_iMaxHealth", bonerHealth, _, bonerMan);
+
+					FF2Player minion = FF2Player(bonerMan);
+					minion.SetPropAny("bIsMinion", true);
+					minion.hOwnerBoss = FF2Player(spookmaster);
 				}
 			}
 		}
