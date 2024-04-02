@@ -10,7 +10,7 @@
 public Plugin myinfo=
 {
     name="Freak Fortress 2 : CSGO",
-    author="Nopied",
+    author="Nopied, HotoCocoaco",
     description="FF2",
     version="1.0",
 };
@@ -26,41 +26,53 @@ public void OnPluginStart2()
 
 public Action FF2_OnAbility2(int boss, const char[] plugin_name, const char[] ability_name, int status)
 {
-
+    return Plugin_Continue;
 }
 
 public Action _OnRoundStart(Handle event, const char[] name, bool dont)
 {
     CheckAbility();
+    return Plugin_Continue;
 }
 
 public Action OnPlayerRunCmd(int client, int &buttons, int &impulse, float vel[3], float angles[3], int &weapon, int &subtype, int &cmdnum, int &tickcount, int &seed, int mouse[2])
 {
-  if(IsCSGO && FF2_GetRoundState() == 1 && IsClientInGame(client) && IsPlayerAlive(client) && !IsWeaponSlotActive(client, TFWeaponSlot_Melee))
-  {
-    // int weapon2 = GetEntPropEnt(client, Prop_Send, "m_hActiveWeapon");
-
-    if(!PlayerRecoiled[client] && GetEntPropFloat(client, Prop_Send, "m_flNextAttack") >= GetGameTime())
+    if(IsCSGO && FF2_GetRoundState() == 1 && IsClientInGame(client) && IsPlayerAlive(client) && !IsWeaponSlotActive(client, TFWeaponSlot_Melee))
     {
-      if(buttons & IN_ATTACK)
-      {
-        PlayerRecoiled[client]=true;
-        float punchAng[3];
-        GetEntPropVector(client, Prop_Send, "m_vecPunchAngle", punchAng);
+        // int weapon2 = GetEntPropEnt(client, Prop_Send, "m_hActiveWeapon");
+        FF2Player player = FF2Player(client);
+        bool client_has_recoil = false;
+        if (player.bIsBoss && player.HasAbility(this_plugin_name, "ff2_csgo"))
+            client_has_recoil = true;
 
-        punchAng[1]+=GetRandomFloat(-10.0, 10.0);
-        punchAng[2]+=GetRandomFloat(5.0, 25.0);
+        if (player.bIsMinion)
+        {
+            FF2Player boss = ToFF2Player(player.hOwnerBoss);
+            if (boss.Valid && boss.HasAbility(this_plugin_name, "ff2_csgo"))
+                client_has_recoil = true;
+        }
 
-        SetEntPropVector(client, Prop_Send, "m_vecPunchAngle", punchAng);
-      }
+        if(!PlayerRecoiled[client] && client_has_recoil && GetEntPropFloat(client, Prop_Send, "m_flNextAttack") >= GetGameTime())
+        {
+            if(buttons & IN_ATTACK)
+            {
+                PlayerRecoiled[client]=true;
+                float punchAng[3];
+                GetEntPropVector(client, Prop_Send, "m_vecPunchAngle", punchAng);
+
+                punchAng[1]+=GetRandomFloat(-10.0, 10.0);
+                punchAng[2]+=GetRandomFloat(5.0, 25.0);
+
+                SetEntPropVector(client, Prop_Send, "m_vecPunchAngle", punchAng);
+            }
+        }
+        else if(PlayerRecoiled[client] && GetEntPropFloat(client, Prop_Send, "m_flNextAttack") <= GetGameTime())
+            PlayerRecoiled[client]=false;
+        else
+            PlayerRecoiled[client]=false;
     }
-    else if(PlayerRecoiled[client] && GetEntPropFloat(client, Prop_Send, "m_flNextAttack") <= GetGameTime())
-    {
-      PlayerRecoiled[client]=false;
-    }
-    else
-      PlayerRecoiled[client]=false;
-  }
+
+    return Plugin_Continue;
 }
 
 /*
