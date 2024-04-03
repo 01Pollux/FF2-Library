@@ -1,0 +1,32 @@
+"Games"
+{
+	"tf"
+	{
+		"Offsets"
+		{
+			"CTFWeaponBaseGun::FireBullet"
+			{
+				"linux"		"480"
+				"windows"	"473"
+			}
+		}
+
+		"Functions"
+		{
+			"CTFWeaponBaseGun::FireBullet"
+			{
+				"offset"	"CTFWeaponBaseGun::FireBullet"
+				"hooktype"		"entity"
+				"return"		"void"
+				"this"			"entity"
+				"arguments"
+				{
+					"pPlayer"
+					{
+						"type"	"cbaseentity"
+					}
+				}
+			}
+		}
+	}
+}

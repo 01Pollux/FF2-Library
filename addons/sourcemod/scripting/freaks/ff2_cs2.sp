@@ -21,6 +21,8 @@ public Plugin myinfo=
 #define SHIELD_MODEL "models/freak_fortress_2/cs2/weapons/c_targe.mdl"
 #define SHIELD_MATERIAL_PATH "materials/freak_fortress_2/cs2/weapons/c_police_shield_"
 
+#define RESIST_SOUND "player/resistance_medium3.wav"
+
 FF2GameMode ff2_gm;
 bool bNeedShield[MAXPLAYERS+1];
 
@@ -63,10 +65,12 @@ public void OnMapStart()
 		PrepareMaterial(s);
 		Format(s, sizeof(s), "%s%s", SHIELD_MATERIAL_PATH, "glass");
 		PrepareMaterial(s);
+
+		PrecacheSound(RESIST_SOUND);
 	}
 }
 
-void FF2_OnAbility2(const FF2Player boss, const char[] plugin_name, const char[] ability_name, FF2CallType_t calltype)
+public void FF2_OnAbility2(const FF2Player boss, const char[] ability_name, FF2CallType_t calltype)
 {
 	if (ff2_gm.RoundState != StateRunning)
 		return;
@@ -75,7 +79,7 @@ void FF2_OnAbility2(const FF2Player boss, const char[] plugin_name, const char[]
 	{
 		// 是触发本插件的能力 ff2_cs2_summon
 		// 不必检查插件名是否一致，因为我没有别的插件使用同样的能力名称。
-		CS2_Summon(boss, plugin_name, ability_name);
+		CS2_Summon(boss, this_plugin_name, ability_name);
 	}
 }
 
@@ -132,7 +136,7 @@ void CS2_OnMinionInitialized(const VSH2Player minion, const VSH2Player owner)
 				int shield = TF2_CreateAndEquipWeapon(minion.index, 131, "tf_wearable");
 				if (IsValidEdict(shield))
 				{
-					TF2Attrib_SetFromStringValue(shield, "set weapon model", SHIELD_MODEL);
+					SetEntProp(shield, Prop_Send, "m_nModelIndex", GetModelIndex(SHIELD_MODEL));
 				}
 
 				// 给近战
@@ -153,11 +157,11 @@ void CS2_OnMinionInitialized(const VSH2Player minion, const VSH2Player owner)
 				TF2_CreateAndEquipWeapon(minion.index, 981, "tf_wearable");
 
 				// 给SMG
-				minion.SpawnWeapon("tf_weapon_smg", 16, 2, 1, "112 ; 1.0; 868 ; 1; 51 ; 1");
+				int smg = minion.SpawnWeapon("tf_weapon_smg", 16, 2, 1, "112 ; 1.0; 868 ; 1; 51 ; 1");
 
 				// 近战
-				int melee = minion.SpawnWeapon("tf_weapon_club", 3, 2, 1, "");
-				SetActiveWep(minion.index, melee);
+				minion.SpawnWeapon("tf_weapon_club", 3, 2, 1, "");
+				SetActiveWep(minion.index, smg);
 			}
 			case 3:
 			{
@@ -166,15 +170,13 @@ void CS2_OnMinionInitialized(const VSH2Player minion, const VSH2Player owner)
 
 				// 饰品
 				TF2_CreateAndEquipWeapon(minion.index, 31113, "tf_wearable");
-				TF2_CreateAndEquipWeapon(minion.index, 30522, "tf_wearable");
-				TF2_CreateAndEquipWeapon(minion.index, 30339, "tf_wearable");
 
 				// 给霰弹
-				minion.SpawnWeapon("tf_weapon_shotgun", 10, 2, 1, "4 ; 1.33; 5 ; 0.66; 112 ; 1.0");
+				int shotgun = minion.SpawnWeapon("tf_weapon_shotgun_soldier", 199, 1, 1, "4 ; 1.33; 5 ; 0.66; 112 ; 1.0");
 
 				// 给近战
-				int melee = minion.SpawnWeapon("tf_weapon_shovel", 6, 2, 1, "");
-				SetActiveWep(minion.index, melee);
+				minion.SpawnWeapon("tf_weapon_shovel", 196, 2, 1, "");
+				SetActiveWep(minion.index, shotgun);
 			}
 		}
 	}
@@ -182,7 +184,7 @@ void CS2_OnMinionInitialized(const VSH2Player minion, const VSH2Player owner)
 
 Action CS2_ShieldOnTakeDamageAlive(int victim, int &attacker, int &inflictor, float &damage, int &damagetype, int &weapon, float damageForce[3], float damagePosition[3], int damagecustom)
 {
-	if (bNeedShield[victim] && IsClientInGame(attacker) && IsWeaponSlotActive(victim, TFWeaponSlot_Melee))
+	if (bNeedShield[victim] && attacker && IsClientInGame(attacker) && IsWeaponSlotActive(victim, TFWeaponSlot_Melee) && ( GetClientTeam(victim) != GetClientTeam(attacker) ))
 	{
 		// 抄袭了
 		// need position of either the inflictor or the attacker
@@ -206,7 +208,8 @@ Action CS2_ShieldOnTakeDamageAlive(int victim, int &attacker, int &inflictor, fl
 		// now it's a simple check
 		if (yawOffset >= -60.0 && yawOffset <= 90.0)
 		{
-			damage *= 0.6; // intentionally not doing partial damage cutting. entire big hits can be lost even if the shield only has 5HP.
+			damage *= 0.6; // 阻挡伤害
+			EmitSoundToAll(RESIST_SOUND, victim, .origin = victimPos);
 			return Plugin_Changed;
 		}
 	}
