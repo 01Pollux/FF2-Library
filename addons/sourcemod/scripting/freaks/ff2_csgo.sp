@@ -33,6 +33,8 @@ public void OnPluginStart2()
 
     g_hFireBullet = DynamicHook.FromConf(hConf, "CTFWeaponBaseGun::FireBullet");
     if (g_hFireBullet == null)	SetFailState("Failed to create DHook for CTFWeaponBaseGun::FireBullet offset!");
+
+    delete hConf;
 }
 
 public Action FF2_OnAbility2(int boss, const char[] plugin_name, const char[] ability_name, int status)
