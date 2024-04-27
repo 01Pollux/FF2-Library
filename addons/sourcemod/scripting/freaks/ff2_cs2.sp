@@ -1,6 +1,7 @@
 #define FF2_USING_AUTO_PLUGIN
 
-#define ABILITY_NAME "ff2_cs2_summon"
+#define CS_SUMMON_NAME "ff2_cs2_summon"
+#define CS_FLASHBANG_NAME "ff2_cs2_flashbang"
 
 #include <freak_fortress_2>
 #include <tf2attributes>
@@ -35,6 +36,7 @@ void OnPluginStart2()
 	}
 	VSH2_Hook(OnMinionInitialized, CS2_OnMinionInitialized);
 	VSH2_Hook(OnPlayerKilled, CS2_OnPlayerKilled);
+	VSH2_Hook(OnPlayerHurt, CS2_OnPlayerHurt);
 
 	for(int i = 0; i <= MaxClients; i++)
 	{
@@ -46,6 +48,7 @@ public void OnPluginEnd()
 {
 	VSH2_Unhook(OnMinionInitialized, CS2_OnMinionInitialized);
 	VSH2_Unhook(OnPlayerKilled, CS2_OnPlayerKilled);
+	VSH2_Unhook(OnPlayerHurt, CS2_OnPlayerHurt);
 }
 
 public void OnMapStart()
@@ -75,11 +78,45 @@ public void FF2_OnAbility2(const FF2Player boss, const char[] ability_name, FF2C
 	if (ff2_gm.RoundState != StateRunning)
 		return;
 	// 首先，我们要知道是否是触发本插件的能力。
-	if (!strcmp(ability_name, ABILITY_NAME))
+	if (StrEqual(ability_name, CS_SUMMON_NAME))
 	{
 		// 是触发本插件的能力 ff2_cs2_summon
 		// 不必检查插件名是否一致，因为我没有别的插件使用同样的能力名称。
 		CS2_Summon(boss, this_plugin_name, ability_name);
+	}
+	else if (StrEqual(ability_name, CS_FLASHBANG_NAME))
+	{
+		CS2_FlashBang(boss);
+	}
+}
+
+void CS2_FlashBang(const FF2Player boss)
+{
+	if (GetPlayerWeaponSlot(boss.index, TFWeaponSlot_Primary) != -1)
+	{
+		TF2_RemoveWeaponSlot(boss.index, TFWeaponSlot_Primary);
+	}
+
+	int flashbang_weapon = boss.SpawnWeapon("tf_weapon_grenadelauncher", 206, 1, 1, "1 ; 0.01; 99 ; 100.0; 3 ; 0.25; 77 ; 0.0");
+	int ammotype = GetEntProp(flashbang_weapon, Prop_Send, "m_iPrimaryAmmoType");
+	if (ammotype > -1)
+	{
+		TF2_SetAmmo(boss.index, ammotype, 0);
+	}
+	
+	SetActiveWep(boss.index, flashbang_weapon);
+}
+
+void CS2_OnPlayerHurt(const VSH2Player player, const VSH2Player victim, Event event)
+{
+	FF2Player boss = ToFF2Player(player);
+	if (boss.HasAbility(this_plugin_name, CS_FLASHBANG_NAME))
+	{
+		if (event.GetInt("damageamount") == 1)
+		{
+			// 依此判断，此伤害是由此能力的玩家的榴弹造成。
+			TF2_StunPlayer(victim.index, 4.0, _, TF_STUNFLAGS_LOSERSTATE, player.index);
+		}
 	}
 }
 
@@ -107,7 +144,7 @@ void CS2_Summon(const FF2Player boss, const char[] plugin_name, const char[] abi
 void CS2_OnMinionInitialized(const VSH2Player minion, const VSH2Player owner)
 {
 	FF2Player boss = ToFF2Player(owner);
-	if (boss.HasAbility(this_plugin_name, ABILITY_NAME))
+	if (boss.HasAbility(this_plugin_name, CS_SUMMON_NAME))
 	{
 		int type = GetRandomInt(1, 3);
 		// 小弟分为3种，1为沙鹰+防爆盾；2为smg；3为霰弹。
