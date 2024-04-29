@@ -133,7 +133,7 @@ public void _OnRoundStart(const VSH2Player[] bosses, const int boss_count, const
 public void ChargeSalmon_OnMinionInitialized(const VSH2Player minion, const VSH2Player vsh2_owner)
 {
 	FF2Player owner = ToFF2Player(vsh2_owner);
-	if (!FF2GameMode.Validate(vsh2_owner))
+	if (!FF2GameMode.Validate(vsh2_owner) && !vsh2_owner.HasAbility(this_plugin_name, CHARGESALMON))
 		return;
 
 	int health = 125;
