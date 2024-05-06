@@ -58,8 +58,13 @@ void OTTO_OnBossPickUpItem(const VSH2Player player, const char item[64])
 		if (StrContains(item, "medkit") != -1)
 		{
 			// 玩家是捡起了血包。
-			float duration = the_boss.GetArgF(this_plugin_name, OTTO_ABILITY, "duration", 5.0);
-			TF2_MakeBleed(player.index, the_boss.index, duration);
+			// 概率吃史。
+			int chance = the_boss.GetArgI(this_plugin_name, OTTO_ABILITY, "chance", 100);
+			if (GetRandomInt(1, 100) <= chance)
+			{
+				float duration = the_boss.GetArgF(this_plugin_name, OTTO_ABILITY, "duration", 5.0);
+				TF2_MakeBleed(player.index, the_boss.index, duration);
+			}
 		}
 	}
 }
