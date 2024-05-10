@@ -1236,7 +1236,7 @@ void SetDamageRadial( int attacker, int dmg,  float pos[3], int Radiusradius, in
 	
 	for  ( i = 1; i <= MaxClients; i++ )
 	{
-		if(IsClientInGame(i) && IsPlayerAlive(i) && GetClientTeam(i)!=FF2_GetBossTeam())
+		if(IsClientInGame(i) && IsPlayerAlive(i) && i != attacker && GetClientTeam(i) != FF2_GetBossTeam())
 		{
 			float pos2[3];
 			GetEntPropVector( i, Prop_Send, "m_vecOrigin", pos2 );
@@ -1310,7 +1310,7 @@ public void IOC_Invoke(int client, int aidx)
 		data.WriteFloat(vOrigin[1]);
 		data.WriteFloat(vOrigin[2]);
 		data.WriteCell(distance);
-		data.WriteCell(0.0);
+		data.WriteFloat(0.0);
 		data.WriteCell(IOCDist);
 		data.WriteCell(IOCdamage);
 		data.Reset();

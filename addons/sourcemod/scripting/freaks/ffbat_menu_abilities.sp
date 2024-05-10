@@ -1040,7 +1040,7 @@ public int MenuHandle(Menu menu, MenuAction action, int client, int selection)
 		case MenuAction_Select:
 		{
 			if(!Enabled || !IsPlayerAlive(client))
-				return;
+				return 0;
 
 			int boss = FF2_GetBossIndex(client);
 			if(Weapon[client] >= 0)
@@ -1049,14 +1049,14 @@ public int MenuHandle(Menu menu, MenuAction action, int client, int selection)
 				{
 					int weapon = GetEntPropEnt(client, Prop_Send, "m_hActiveWeapon");
 					if(weapon<=MaxClients || !IsValidEntity(weapon) || !HasEntProp(weapon, Prop_Send, "m_iItemDefinitionIndex"))
-						return;
+						return 0;
 
 					if(GetEntProp(weapon, Prop_Send, "m_iItemDefinitionIndex") != Weapon[client])
-						return;
+						return 0;
 				}
 				else if(GetPlayerWeaponSlot(client, Weapon[client]) != GetEntPropEnt(client, Prop_Send, "m_hActiveWeapon"))
 				{
-					return;
+					return 0;
 				}
 			}
 
@@ -1064,7 +1064,7 @@ public int MenuHandle(Menu menu, MenuAction action, int client, int selection)
 			menu.GetItem(selection, menuId, sizeof(menuId), _, menuItem, MAX_MENUTITLE_LENGTH);
 			int ability = StringToInt(menuId);
 			if(ability < 0)
-				return;
+				return 0;
 
 			bool blocked = false;
 			Action action2 = Plugin_Continue;
@@ -1082,7 +1082,7 @@ public int MenuHandle(Menu menu, MenuAction action, int client, int selection)
 				}
 				case Plugin_Stop:
 				{
-					return;
+					return 0;
 				}
 				case Plugin_Continue:
 				{
@@ -1175,6 +1175,8 @@ public int MenuHandle(Menu menu, MenuAction action, int client, int selection)
 			Call_Finish(action2);
 		}
 	}
+
+	return 0;
 }
 
 public void MenuBot(int client)
@@ -1375,53 +1377,64 @@ public void MakeBoss(FF2Player player, int callMode)
 		OnDeath[client][mana] = GetArgF(boss, abilityFormat, (mana*10)+19, 0.0, 0);
 	}
 
-	#if MAX_TYPES>8
+	
 	if(NewArgs[client])
 	{
-		for(int mana=9; mana<MAX_TYPES; mana++)
+		#if MAX_TYPES>8
+		for(int mana; mana<9; mana++)
+		#else
+		for(int mana; mana<MAX_TYPES; mana++)
+		#endif
 		{
 			Format(abilityFormat, MAX_ABILITY_LENGTH, "max%i", mana+1);
-			Maximum[client][mana] = GetArgF(boss, abilityFormat, VOID_ARG, 0.0, 0);
+			Maximum[client][mana] = player.GetArgF(this_plugin_name, CONFIG, abilityFormat);
 			if(Maximum[client][mana] == 0)
 				continue;
 
 			Format(abilityFormat, MAX_ABILITY_LENGTH, "mana%i", mana+1);
-			FF2_GetArgNamedS(boss, this_plugin_name, CONFIG, abilityFormat, Mana[client][mana], MAX_MENUITEM_LENGTH);
+			player.GetArgS(this_plugin_name, CONFIG, abilityFormat, Mana[client][mana], MAX_MENUITEM_LENGTH);
 
 			Format(abilityFormat, MAX_ABILITY_LENGTH, "start%i", mana+1);
-			Current[client][mana] = GetArgF(boss, abilityFormat, VOID_ARG, 0.0, 0);
+			Current[client][mana] = player.GetArgF(this_plugin_name, CONFIG, abilityFormat);
 			Display[client][mana] = Current[client][mana];
 
 			Format(abilityFormat, MAX_ABILITY_LENGTH, "roll%i", mana+1);
-			Rolling[client][mana] = GetArgF(boss, abilityFormat, VOID_ARG, 0.0, 0);
+			Rolling[client][mana] = player.GetArgF(this_plugin_name, CONFIG, abilityFormat);
 
 			Format(abilityFormat, MAX_ABILITY_LENGTH, "kill%i", mana+1);
-			OnKill[client][mana] = GetArgF(boss, abilityFormat, VOID_ARG, 0.0, 0);
+			OnKill[client][mana] = player.GetArgF(this_plugin_name, CONFIG, abilityFormat);
 
 			Format(abilityFormat, MAX_ABILITY_LENGTH, "hit%i", mana+1);
-			OnHit[client][mana] = GetArgF(boss, abilityFormat, VOID_ARG, 0.0, 0);
+			OnHit[client][mana] = player.GetArgF(this_plugin_name, CONFIG, abilityFormat);
 
 			Format(abilityFormat, MAX_ABILITY_LENGTH, "hurt%i", mana+1);
-			OnHurt[client][mana] = GetArgF(boss, abilityFormat, VOID_ARG, 0.0, 0);
+			OnHurt[client][mana] = player.GetArgF(this_plugin_name, CONFIG, abilityFormat);
 
 			Format(abilityFormat, MAX_ABILITY_LENGTH, "time%i", mana+1);
-			OnTime[client][mana] = GetArgF(boss, abilityFormat, VOID_ARG, 0.0, 0);
+			OnTime[client][mana] = player.GetArgF(this_plugin_name, CONFIG, abilityFormat);
 
 			Format(abilityFormat, MAX_ABILITY_LENGTH, "blast%i", mana+1);
-			OnBlast[client][mana] = GetArgF(boss, abilityFormat, VOID_ARG, 0.0, 0);
+			OnBlast[client][mana] = player.GetArgF(this_plugin_name, CONFIG, abilityFormat);
 
 			Format(abilityFormat, MAX_ABILITY_LENGTH, "death%i", mana+1);
-			OnDeath[client][mana] = GetArgF(boss, abilityFormat, VOID_ARG, 0.0, 0);
+			OnDeath[client][mana] = player.GetArgF(this_plugin_name, CONFIG, abilityFormat);
 		}
 	}
-	#endif
 
 	Abilities[client] = 0;
 	float engineTime = GetEngineTime();
 	for(int ability; ability<MAX_SPELLS; ability++)
 	{
 		Format(abilityFormat, MAX_ABILITY_LENGTH, "name%i", ability+1);
-		if(!GetArgS(boss, abilityFormat, (ability*100)+100, Name[client][ability], MAX_MENUITEM_LENGTH))
+		if(NewArgs[client])
+		{
+			if (!player.GetArgS(this_plugin_name, CONFIG, abilityFormat, Name[client][ability], MAX_MENUITEM_LENGTH))
+			{
+				Disabled[client][ability] = true;
+				continue;
+			}		
+		}
+		else if(!GetArgS(boss, abilityFormat, (ability*100)+100, Name[client][ability], MAX_MENUITEM_LENGTH))
 		{
 			Disabled[client][ability] = true;
 			continue;
@@ -1441,25 +1454,25 @@ public void MakeBoss(FF2Player player, int callMode)
 		Format(abilityFormat, MAX_ABILITY_LENGTH, "button%ia", ability+1);
 		Buttonmode[client][ability][0] = RoundFloat(GetArgF(boss, abilityFormat, (ability*100)+104, 0.0, 1));
 
-		#if MAX_SPECIALS>0
+		
 		if(NewArgs[client])
 		{
-			for(int i=1; i<MAX_SPECIALS; i++)
+			for(int i=0; i<MAX_SPECIALS; i++)
 			{
 				Format(abilityFormat, MAX_ABILITY_LENGTH, "ability%i%s", ability+1, ABC[i]);
-				FF2_GetArgNamedS(boss, this_plugin_name, CONFIG, abilityFormat, Ability[client][ability][i], MAX_ABILITY_LENGTH);
+				player.GetArgS(this_plugin_name, CONFIG, abilityFormat, Ability[client][ability][i], MAX_ABILITY_LENGTH);
 
 				Format(abilityFormat, MAX_ABILITY_LENGTH, "plugin%i%s", ability+1, ABC[i]);
-				FF2_GetArgNamedS(boss, this_plugin_name, CONFIG, abilityFormat, PluginName[client][ability][i], MAX_PLUGIN_LENGTH);
+				player.GetArgS(this_plugin_name, CONFIG, abilityFormat, PluginName[client][ability][i], MAX_PLUGIN_LENGTH);
 
 				Format(abilityFormat, MAX_ABILITY_LENGTH, "slot%i%s", ability+1, ABC[i]);
-				Slot[client][ability][i] = RoundFloat(GetArgF(boss, abilityFormat, VOID_ARG, 0.0, 0));
+				Slot[client][ability][i] = player.GetArgI(this_plugin_name, CONFIG, abilityFormat);
 
 				Format(abilityFormat, MAX_ABILITY_LENGTH, "button%i%s", ability+1, ABC[i]);
-				Buttonmode[client][ability][i] = RoundFloat(GetArgF(boss, abilityFormat, VOID_ARG, 0.0, 1));
+				Buttonmode[client][ability][i] = player.GetArgI(this_plugin_name, CONFIG, abilityFormat);
 			}
 		}
-		#endif
+		
 
 		#if MAX_TYPES>8
 		for(int mana; mana<9; mana++)
@@ -1471,37 +1484,46 @@ public void MakeBoss(FF2Player player, int callMode)
 			Cost[client][ability][mana] = GetArgF(boss, abilityFormat, (ability*100)+mana+110, 0.0, 1);
 		}
 
-		#if MAX_TYPES>8
 		if(NewArgs[client])
 		{
-			for(int mana=9; mana<MAX_TYPES; mana++)
+			#if MAX_TYPES>8
+			for(int mana; mana<9; mana++)
+			#else
+			for(int mana; mana<MAX_TYPES; mana++)
+			#endif
 			{
 				Format(abilityFormat, MAX_ABILITY_LENGTH, "cost%i%s", ability+1, ABC[mana]);
-				Cost[client][ability][mana] = GetArgF(boss, abilityFormat, VOID_ARG, 0.0, 1);
+				Cost[client][ability][mana] = player.GetArgF(this_plugin_name, CONFIG, abilityFormat);
 			}
 		}
-		#endif
 
 		Format(abilityFormat, MAX_ABILITY_LENGTH, "initial%i", ability+1);
 		Cooldown[client][ability] = engineTime+GetArgF(boss, abilityFormat, (ability*100)+120, 0.0, 1);
+		if(NewArgs[client])	Cooldown[client][ability] = engineTime+player.GetArgF(this_plugin_name, CONFIG, abilityFormat);
 
 		Format(abilityFormat, MAX_ABILITY_LENGTH, "cooldown%i", ability+1);
 		SpellCool[client][ability] = GetArgF(boss, abilityFormat, (ability*100)+121, 0.0, 1);
+		if(NewArgs[client])	SpellCool[client][ability] = player.GetArgF(this_plugin_name, CONFIG, abilityFormat);
 
 		Format(abilityFormat, MAX_ABILITY_LENGTH, "global%i", ability+1);
 		GlobalCool[client][ability] = GetArgF(boss, abilityFormat, (ability*100)+122, 0.0, 0);
+		if(NewArgs[client])	GlobalCool[client][ability] = player.GetArgF(this_plugin_name, CONFIG, abilityFormat);
 
 		Format(abilityFormat, MAX_ABILITY_LENGTH, "spell%i", ability+1);
 		Magic[client][ability] = GetArgI(boss, abilityFormat, (ability*100)+123);
+		if(NewArgs[client])	Magic[client][ability] = player.GetArgI(this_plugin_name, CONFIG, abilityFormat);
 
 		Format(abilityFormat, MAX_ABILITY_LENGTH, "index%i", ability+1);
 		Index[client][ability] = RoundFloat(GetArgF(boss, abilityFormat, (ability*100)+124, 0.0, 1));
+		if(NewArgs[client])	Index[client][ability] = player.GetArgI(this_plugin_name, CONFIG, abilityFormat);
 
 		Format(abilityFormat, MAX_ABILITY_LENGTH, "particle%i", ability+1);
 		GetArgS(boss, abilityFormat, (ability*100)+131, Particle[client][ability], MAX_EFFECT_LENGTH);
+		if(NewArgs[client])	player.GetArgS(this_plugin_name, CONFIG, abilityFormat, Particle[client][ability], MAX_EFFECT_LENGTH);
 
 		Format(abilityFormat, MAX_ABILITY_LENGTH, "attach%i", ability+1);
 		GetArgS(boss, abilityFormat, (ability*100)+132, Attachment[client][ability], MAX_ATTACHMENT_LENGTH);
+		if(NewArgs[client])	player.GetArgS(this_plugin_name, CONFIG, abilityFormat, Attachment[client][ability], MAX_ATTACHMENT_LENGTH);
 	}
 
 	Enabled = true;
@@ -2003,6 +2025,7 @@ public Action Timer_RemoveEntity(Handle timer, any entid)
 		TeleportEntity(entity, OFF_THE_MAP, NULL_VECTOR, NULL_VECTOR); // send it away first in case it feels like dying dramatically
 		AcceptEntityInput(entity, "Kill");
 	}
+	return Plugin_Stop;
 }
 
 stock int ReadHexOrDecInt(char hexOrDecString[HEX_OR_DEC_LENGTH])
@@ -2094,6 +2117,7 @@ public int Native_MakeBoss(Handle plugin, int numParams)
 		ThrowNativeError(SP_ERROR_NATIVE, "Invalid Boss Index: %i", boss);
 	
 	MakeBoss(boss, GetNativeCell(2) ? 1 : 0);
+	return 0;
 }
 
 public int Native_Refresh(Handle plugin, int numParams)
@@ -2103,6 +2127,7 @@ public int Native_Refresh(Handle plugin, int numParams)
 		ThrowNativeError(SP_ERROR_NATIVE, "Invalid Boss Index: %i", boss);
 	
 	RefreshSpells(boss.userid, GetNativeCell(3), GetNativeCell(2));
+	return 0;
 }
 
 /*
@@ -2762,7 +2787,5 @@ public int Native_GetSpellString(Handle plugin, int numParams)
 void FF2_DoAbility2(int boss, const char[] pluginName, const char[] abilityName, int slot, int button)
 {
 #pragma unused button
-	FF2_DoAbility(boss, pluginName, abilityName, slot);
+FF2_DoAbility(boss, pluginName, abilityName, slot);
 }
-
-//#file "FF2 Subplugin: Menu Abilities"

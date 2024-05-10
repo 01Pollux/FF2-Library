@@ -177,7 +177,7 @@ public void PersistentTFCondition_PreThink(int client)
 			if(curRage[client]<=minCost[client]-1.0 && !IsPlayerInSpecificConditions(client, SpecialTFCondTweakConditions[client]) || curRage[client]<=0.44)
 			{
 				SetHudTextParams(-1.0, 0.5, 3.0, 255, 0, 0, 255);
-				ShowHudText(client, -1, "Insufficient RAGE! You need a minimum of %i percent RAGE to use!", RoundFloat(minCost[client]));
+				ShowHudText(client, -1, "愤怒值不足！你需要至少 %i 百分比愤怒之才可以使用！", RoundFloat(minCost[client]));
 				return;
 			}
 			
