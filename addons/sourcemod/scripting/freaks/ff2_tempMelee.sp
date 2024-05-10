@@ -1,10 +1,11 @@
 #pragma semicolon 1
 
+#define FF2_USING_AUTO_PLUGIN__OLD
+
 #include <sourcemod>
 #include <tf2items>
 #include <tf2_stocks>
 #include <freak_fortress_2>
-#include <freak_fortress_2_subplugin>
 
 public Plugin:myinfo = {
    name = "Freak Fortress 2: Temp Melee Weapon",
@@ -88,4 +89,5 @@ public Action:normalMelee(Handle:timer, Handle:pack)
 	
 	TF2_RemoveWeaponSlot(Boss, TFWeaponSlot_Melee);
 	SetEntPropEnt(Boss, Prop_Send, "m_hActiveWeapon", SpawnWeapon(Boss, reWeaponClass, reWeaponIndex, 1, 5, reWeaponAttribs));
+	return Plugin_Stop;
 }
