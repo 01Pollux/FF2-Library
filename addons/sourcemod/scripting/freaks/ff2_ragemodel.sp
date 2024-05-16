@@ -39,28 +39,12 @@ new g_BossThreshold5 = -1;
 
 new Handle:g_HealthModelTimer;
 
-Action:FF2_OnBossModelTimer(const VSH2Player:player)
-{
-	if (g_ModelChanged)
-		return Plugin_Handled;
-
-	return Plugin_Continue;
-}
-
 public OnPluginStart2()
 {
 	HookEvent("arena_round_start", Event_RoundStart, EventHookMode_PostNoCopy);
 	HookEvent("arena_win_panel", Event_RoundEnd, EventHookMode_PostNoCopy);
 	CreateTimer(1.0, BossHealthCheck, _, TIMER_REPEAT|TIMER_FLAG_NO_MAPCHANGE);
-
-	VSH2_Hook(OnBossModelTimer, FF2_OnBossModelTimer);
 }
-
-public OnPluginEnd()
-{
-	VSH2_Unhook(OnBossModelTimer, FF2_OnBossModelTimer);
-}
-
 
 public Action:FF2_OnAbility2(index, const String:plugin_name[], const String:ability_name[], action)
 {
@@ -68,6 +52,7 @@ public Action:FF2_OnAbility2(index, const String:plugin_name[], const String:abi
 		Rage_Model(ability_name, index);	//change model on rage
 	else if (!strcmp(ability_name,"life_model"))
 		Life_Model(index);	//change model on life lost
+
 	return Plugin_Continue;
 }
 
@@ -93,6 +78,7 @@ Life_Model(index)
 		ChangeBossModel(g_LifeModel[g_BossLife], Boss);
 		g_ChangedModel = g_LifeModel[g_BossLife];
 		g_ModelChanged = true;
+		FF2Player(index).SetPropAny("bNoModelTimer", true);
 	}
 	g_BossLife++;
 }
@@ -201,6 +187,7 @@ public Action:SetBossModel(Handle:timer, any:client)
 			g_ChangedModel = g_HealthModel5;
 			g_BossThreshold5 = 0;
 			g_ModelChanged = true;
+			FF2Player(client).SetPropAny("bNoModelTimer", true);
 		}
 		else if (g_BossThreshold4 && g_BossHealth < float(g_BossMaxHealth)*(float(g_BossThreshold4)/100))
 		{
@@ -208,6 +195,7 @@ public Action:SetBossModel(Handle:timer, any:client)
 			g_ChangedModel = g_HealthModel4;
 			g_BossThreshold4 = 0;
 			g_ModelChanged = true;
+			FF2Player(client).SetPropAny("bNoModelTimer", true);
 		}
 		else if (g_BossThreshold3 && g_BossHealth < float(g_BossMaxHealth)*(float(g_BossThreshold3)/100))
 		{
@@ -215,6 +203,7 @@ public Action:SetBossModel(Handle:timer, any:client)
 			g_ChangedModel = g_HealthModel3;
 			g_BossThreshold3 = 0;
 			g_ModelChanged = true;
+			FF2Player(client).SetPropAny("bNoModelTimer", true);
 		}
 		else if (g_BossThreshold2 && g_BossHealth < float(g_BossMaxHealth)*(float(g_BossThreshold2)/100))
 		{
@@ -222,6 +211,7 @@ public Action:SetBossModel(Handle:timer, any:client)
 			g_ChangedModel = g_HealthModel2;
 			g_BossThreshold2 = 0;
 			g_ModelChanged = true;
+			FF2Player(client).SetPropAny("bNoModelTimer", true);
 		}
 		else if (g_BossThreshold1 && g_BossHealth < float(g_BossMaxHealth)*(float(g_BossThreshold1)/100))
 		{
@@ -229,6 +219,7 @@ public Action:SetBossModel(Handle:timer, any:client)
 			g_ChangedModel = g_HealthModel1;
 			g_BossThreshold1 = 0;
 			g_ModelChanged = true;
+			FF2Player(client).SetPropAny("bNoModelTimer", true);
 		}
 	}
 }
