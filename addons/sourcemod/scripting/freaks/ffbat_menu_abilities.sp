@@ -560,6 +560,7 @@ public void OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 
 	TimerCheckPlayers.Begin();
 
+	// victim
 	int client = GetClientOfUserId(event.GetInt("userid"));
 	if(!IsValidClient(client))
 		return;
@@ -569,23 +570,23 @@ public void OnPlayerDeath(Event event, const char[] name, bool dontBroadcast)
 	if(IsBoss(attacker))
 	{
 		boss = FF2Player(attacker);
-		if(IsWizard[client])
+		if(IsWizard[attacker])
 		{
-			if(Refresh[client] & RAN_ONKILL)
-				RefreshSpells(boss.userid, Randomize[client], true);
+			if(Refresh[attacker] & RAN_ONKILL)
+				RefreshSpells(boss.userid, Randomize[attacker], true);
 
 			for(int mana; mana<MAX_TYPES; mana++)
 			{
-				if(Maximum[client][mana] != 0)
+				if(Maximum[attacker][mana] != 0)
 				{
-					Current[client][mana] += OnKill[client][mana];
-					if(Maximum[client][mana]>0 && Current[client][mana]>Maximum[client][mana])
+					Current[attacker][mana] += OnKill[attacker][mana];
+					if(Maximum[attacker][mana]>0 && Current[attacker][mana]>Maximum[attacker][mana])
 					{
-						Current[client][mana] = Maximum[client][mana];
+						Current[attacker][mana] = Maximum[attacker][mana];
 					}
-					else if(Current[client][mana] < 0)
+					else if(Current[attacker][mana] < 0)
 					{
-						Current[client][mana] = 0.0;
+						Current[attacker][mana] = 0.0;
 					}
 				}
 			}
