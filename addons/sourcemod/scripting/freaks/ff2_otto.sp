@@ -40,7 +40,7 @@ void OTTO_OnBossPickUpItem(const VSH2Player player, const char item[64])
 	int num = FF2GameMode.GetBosses(bosses, true);
 	if (num)
 	{
-		for(int i = 0; i <= num; i++)
+		for(int i = 0; i < num; i++)
 		{
 			if (bosses[i].HasAbility(this_plugin_name, OTTO_ABILITY))
 			{
