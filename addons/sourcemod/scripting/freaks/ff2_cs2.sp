@@ -34,21 +34,15 @@ void OnPluginStart2()
 		LogError("TF2Attribute is not installed. Freak Fortress 2 : CS2 will not work.");
 		return;
 	}
-	VSH2_Hook(OnMinionInitialized, CS2_OnMinionInitialized);
-	VSH2_Hook(OnPlayerKilled, CS2_OnPlayerKilled);
-	VSH2_Hook(OnPlayerHurt, CS2_OnPlayerHurt);
+
+	HookEvent("player_spawn", CS2_OnMinionInitialized);
+	HookEvent("player_death", CS2_OnPlayerKilled);
+	HookEvent("player_hurt", CS2_OnPlayerHurt);
 
 	for(int i = 0; i <= MaxClients; i++)
 	{
 		bNeedShield[i] = false;
 	}
-}
-
-public void OnPluginEnd()
-{
-	VSH2_Unhook(OnMinionInitialized, CS2_OnMinionInitialized);
-	VSH2_Unhook(OnPlayerKilled, CS2_OnPlayerKilled);
-	VSH2_Unhook(OnPlayerHurt, CS2_OnPlayerHurt);
 }
 
 public void OnMapStart()
@@ -107,15 +101,15 @@ void CS2_FlashBang(const FF2Player boss)
 	SetActiveWep(boss.index, flashbang_weapon);
 }
 
-void CS2_OnPlayerHurt(const VSH2Player player, const VSH2Player victim, Event event)
+void CS2_OnPlayerHurt (Event event, const char[] name, bool dontBroadcast)
 {
-	FF2Player boss = ToFF2Player(player);
+	FF2Player boss = FF2Player(event.GetInt("attacker"), true);
 	if (boss.HasAbility(this_plugin_name, CS_FLASHBANG_NAME))
 	{
 		if (event.GetInt("damageamount") == 1)
 		{
 			// 依此判断，此伤害是由此能力的玩家的榴弹造成。
-			TF2_StunPlayer(victim.index, 4.0, _, TF_STUNFLAGS_LOSERSTATE, player.index);
+			TF2_StunPlayer(GetClientOfUserId(event.GetInt("userid")), 4.0, _, TF_STUNFLAGS_LOSERSTATE, boss.index);
 		}
 	}
 }
@@ -141,10 +135,11 @@ void CS2_Summon(const FF2Player boss, const char[] plugin_name, const char[] abi
 	}
 }
 
-void CS2_OnMinionInitialized(const VSH2Player minion, const VSH2Player owner)
+void CS2_OnMinionInitialized(Event event, const char[] name, bool dontBroadcast)
 {
-	FF2Player boss = ToFF2Player(owner);
-	if (boss.HasAbility(this_plugin_name, CS_SUMMON_NAME))
+	FF2Player minion = FF2Player(event.GetInt("userid", true));
+	FF2Player boss = ToFF2Player(minion.hOwnerBoss);
+	if (boss && boss.HasAbility(this_plugin_name, CS_SUMMON_NAME))
 	{
 		int type = GetRandomInt(1, 3);
 		// 小弟分为3种，1为沙鹰+防爆盾；2为smg；3为霰弹。
@@ -254,10 +249,11 @@ Action CS2_ShieldOnTakeDamageAlive(int victim, int &attacker, int &inflictor, fl
 	return Plugin_Continue;
 }
 
-void CS2_OnPlayerKilled(const VSH2Player player, const VSH2Player victim, Event event)
+void CS2_OnPlayerKilled(Event event, const char[] name, bool dontBroadcast)
 {
-	if (bNeedShield[victim.index])
-		bNeedShield[victim.index] = false;
+	int client = GetClientOfUserId(event.GetInt("userid"));
+	if (bNeedShield[client])
+		bNeedShield[client] = false;
 }
 
 stock int GetDeadGuys()
