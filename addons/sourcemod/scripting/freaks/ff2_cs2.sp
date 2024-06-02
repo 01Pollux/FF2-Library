@@ -135,11 +135,16 @@ void CS2_Summon(const FF2Player boss, const char[] plugin_name, const char[] abi
 	}
 }
 
-void CS2_OnMinionInitialized(Event event, const char[] name, bool dontBroadcast)
+void CS2_OnMinionSpawned(Event event, const char[] name, bool dontBroadcast)
+{
+	CreateTimer(0.3, CS2_OnMinionInitialized, event);
+}
+
+Action CS2_OnMinionInitialized(Event event)
 {
 	FF2Player minion = FF2Player(event.GetInt("userid", true));
 	FF2Player boss = ToFF2Player(minion.hOwnerBoss);
-	if (boss && boss.HasAbility(this_plugin_name, CS_SUMMON_NAME))
+	if (minion.bIsMinion && boss && boss.HasAbility(this_plugin_name, CS_SUMMON_NAME))
 	{
 		int type = GetRandomInt(1, 3);
 		// 小弟分为3种，1为沙鹰+防爆盾；2为smg；3为霰弹。
@@ -212,6 +217,8 @@ void CS2_OnMinionInitialized(Event event, const char[] name, bool dontBroadcast)
 			}
 		}
 	}
+
+	return Plugin_Stop;
 }
 
 Action CS2_ShieldOnTakeDamageAlive(int victim, int &attacker, int &inflictor, float &damage, int &damagetype, int &weapon, float damageForce[3], float damagePosition[3], int damagecustom)
