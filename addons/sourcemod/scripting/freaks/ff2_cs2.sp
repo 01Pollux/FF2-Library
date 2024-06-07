@@ -35,7 +35,7 @@ void OnPluginStart2()
 		return;
 	}
 
-	HookEvent("player_spawn", CS2_OnMinionInitialized);
+	VSH2_Hook(OnMinionInitialized, CS2_OnMinionInitialized);
 	HookEvent("player_death", CS2_OnPlayerKilled);
 	HookEvent("player_hurt", CS2_OnPlayerHurt);
 
@@ -101,10 +101,10 @@ void CS2_FlashBang(const FF2Player boss)
 	SetActiveWep(boss.index, flashbang_weapon);
 }
 
-void CS2_OnPlayerHurt (Event event, const char[] name, bool dontBroadcast)
+void CS2_OnPlayerHurt(Event event, const char[] name, bool dontBroadcast)
 {
 	FF2Player boss = FF2Player(event.GetInt("attacker"), true);
-	if (boss.HasAbility(this_plugin_name, CS_FLASHBANG_NAME))
+	if (boss.bIsBoss && boss.HasAbility(this_plugin_name, CS_FLASHBANG_NAME))
 	{
 		if (event.GetInt("damageamount") == 1)
 		{
@@ -129,22 +129,19 @@ void CS2_Summon(const FF2Player boss, const char[] plugin_name, const char[] abi
 		if (target != -1)
 		{
 			FF2Player player = FF2Player(target);
-			player.ConvertToMinion(0.5);
 			player.hOwnerBoss = boss;
+			player.ConvertToMinion(0.2);
 		}
 	}
 }
 
-void CS2_OnMinionSpawned(Event event, const char[] name, bool dontBroadcast)
+void CS2_OnMinionInitialized(const VSH2Player minion, const VSH2Player vsh2_owner)
 {
-	CreateTimer(0.3, CS2_OnMinionInitialized, event);
-}
+	FF2Player owner = ToFF2Player(vsh2_owner);
+	if ( !FF2GameMode.Validate(vsh2_owner) )
+		return;
 
-Action CS2_OnMinionInitialized(Event event)
-{
-	FF2Player minion = FF2Player(event.GetInt("userid", true));
-	FF2Player boss = ToFF2Player(minion.hOwnerBoss);
-	if (minion.bIsMinion && boss && boss.HasAbility(this_plugin_name, CS_SUMMON_NAME))
+	if ( owner.HasAbility(this_plugin_name, CS_SUMMON_NAME) )
 	{
 		int type = GetRandomInt(1, 3);
 		// 小弟分为3种，1为沙鹰+防爆盾；2为smg；3为霰弹。
@@ -215,10 +212,23 @@ Action CS2_OnMinionInitialized(Event event)
 				minion.SpawnWeapon("tf_weapon_shovel", 196, 2, 1, "");
 				SetActiveWep(minion.index, shotgun);
 			}
+			default:
+			{
+				TF2_SetPlayerClass(minion.index, TFClass_Soldier, _, false);
+				minion.RemoveAllItems();
+
+				// 饰品
+				TF2_CreateAndEquipWeapon(minion.index, 31113, "tf_wearable");
+
+				// 给霰弹
+				int shotgun = minion.SpawnWeapon("tf_weapon_shotgun_soldier", 199, 1, 1, "4 ; 1.33; 5 ; 0.66; 112 ; 1.0");
+
+				// 给近战
+				minion.SpawnWeapon("tf_weapon_shovel", 196, 2, 1, "");
+				SetActiveWep(minion.index, shotgun);
+			}
 		}
 	}
-
-	return Plugin_Stop;
 }
 
 Action CS2_ShieldOnTakeDamageAlive(int victim, int &attacker, int &inflictor, float &damage, int &damagetype, int &weapon, float damageForce[3], float damagePosition[3], int damagecustom)
@@ -260,7 +270,10 @@ void CS2_OnPlayerKilled(Event event, const char[] name, bool dontBroadcast)
 {
 	int client = GetClientOfUserId(event.GetInt("userid"));
 	if (bNeedShield[client])
+	{
 		bNeedShield[client] = false;
+		SDKUnhook(client, SDKHook_OnTakeDamageAlive, CS2_ShieldOnTakeDamageAlive);
+	}
 }
 
 stock int GetDeadGuys()
