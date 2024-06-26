@@ -144,7 +144,7 @@ public void SexiThink(int iClient)
 
 public Action Timer_NoAttacking(Handle timer, int serial)
 {
-	int i = GetClientFromSerial(i);
+	int i = GetClientFromSerial(serial);
 	int weapon=GetEntPropEnt(i, Prop_Send, "m_hActiveWeapon");
 	if(IsValidEntity(weapon))
 	{
@@ -157,7 +157,7 @@ public Action Timer_NoAttacking(Handle timer, int serial)
 
 public Action RefreshPlayer(Handle timer, int serial)
 {
-	int i = GetClientFromSerial(i);
+	int i = GetClientFromSerial(serial);
 	if(!IsValidLivingPlayer(i))
 		return Plugin_Stop;
 	TF2_RegeneratePlayer(i);
